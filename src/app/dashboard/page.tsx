@@ -1,18 +1,15 @@
 'use client'
 
 import { useState } from 'react'
-import dynamic from 'next/dynamic'
 import { Package, Users, DollarSign, Clock } from 'lucide-react'
 import { MetricCard } from '@/components/ui/metric-card'
-import { ApexOptions } from 'apexcharts'
 import { OrderStatusCard } from '@/components/ui/order-status-card'
 import { OrderVolumeCard } from '@/components/ui/order-volume-card'
 import { CustomerStatsCard } from '@/components/ui/customer-stats-card'
 import { SalesChartCard } from '@/components/ui/sales-chart-card'
 import { OrdersTable } from '@/components/ui/orders-table'
 
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false })
-
+ 
 const salesData = [
     { date: '01', value: 800000 },
     { date: '03', value: 750000 },
@@ -88,64 +85,7 @@ const orders = [
 export default function Dashboard() {
     const [timeframe, setTimeframe] = useState('30 Days')
 
-    const chartOptions: ApexOptions = {
-        chart: {
-            type: 'area' as const,
-            toolbar: { show: false },
-            zoom: { enabled: false }
-        },
-        colors: ['#5C59E8'],
-        fill: {
-            type: "gradient",
-            gradient: {
-                shadeIntensity: 1,
-                opacityFrom: 0.7,
-                opacityTo: 0.9,
-                stops: [0, 90, 100]
-            }
-        },
-        stroke: {
-            curve: 'smooth',
-            width: 2
-        },
-        grid: {
-            borderColor: '#E0E2E7',
-            strokeDashArray: 3,
-            xaxis: { lines: { show: false } }
-        },
-        dataLabels: { enabled: false },
-        xaxis: {
-            categories: salesData.map(item => item.date),
-            axisBorder: { show: false },
-            axisTicks: { show: false },
-            labels: { style: { colors: '#667085' } }
-        },
-        yaxis: {
-            labels: {
-                style: { colors: '#667085' },
-                formatter: (value: number) => `₦${(value / 1000000).toFixed(1)}M`
-            }
-        },
-        tooltip: {
-            theme: 'light',
-            x: { show: true },
-            y: {
-                formatter: (value: number) => `₦${value.toLocaleString()}`
-            }
-        },
-        markers: {
-            size: 0,
-            strokeWidth: 2,
-            strokeColors: '#FFFFFF',
-            hover: { size: 6 }
-        }
-    }
-
-    const chartSeries = [{
-        name: 'Sales',
-        data: salesData.map(item => item.value)
-    }]
-
+   
     return (
         <div className="space-y-6 pb-[5rem]">
             <div className="grid items-center px-5 py-5 border-b bg-white border-[#e1dede90] grid-cols-2 justify-between">
@@ -203,7 +143,7 @@ export default function Dashboard() {
                 />
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-5">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 px-5">
                 <div className="col-span-2 grid">
                     <SalesChartCard
                         data={salesData}
@@ -219,7 +159,7 @@ export default function Dashboard() {
                     change="+10%"
                 />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-5">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 px-5">
                 <div className="col-span-2 grid">
 
                     <CustomerStatsCard

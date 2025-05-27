@@ -12,7 +12,6 @@ import {
   Package,
   BarChart,
   Bell,
-  Settings,
   LogOut,
   Percent,
   RotateCcw,
@@ -23,7 +22,7 @@ import {
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
-  { icon: ShoppingCart, label: 'Order Management', href: '/dashboard/orders', badge: '13' },
+  { icon: ShoppingCart, label: 'Order Management', href: '/dashboard/order-management', badge: '13' },
   { icon: Users, label: 'Customer Management', href: '/dashboard/customers' },
   { icon: Percent, label: 'Discount & Promotion', href: '/dashboard/discounts' },
   { icon: Package, label: 'Product Management', href: '/dashboard/products' },
@@ -41,7 +40,7 @@ export default function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="w-[250px] bg-[#4C8EDA] min-h-screen p-4 flex flex-col">
+    <aside className="w-[280px] bg-[#4C8EDA] min-h-screen p-4 flex flex-col">
       <div className="flex items-center relative mt-3 w-full h-[2.5rem] py-5 gap-3 px-2 mb-8">
         <Image src="/logo.png" alt="Steadfast" fill className=" absolute object-contain" />
       </div>

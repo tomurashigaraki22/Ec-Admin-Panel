@@ -21,6 +21,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (credentials: { email: string; password: string }) => {
     // Implement your login logic here
+    console.log(credentials)
     localStorage.setItem('token', 'dummy-token');
     setIsAuthenticated(true);
     router.push('/dashboard');

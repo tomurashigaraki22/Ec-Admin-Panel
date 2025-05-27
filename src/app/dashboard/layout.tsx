@@ -1,17 +1,5 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
-import {
-  LayoutDashboard,
-  Users,
-  ShoppingCart,
-  Truck,
-  Package,
-  BarChart,
-  Bell,
-  Settings,
-} from 'lucide-react'
 import Sidebar from '@/components/sidebar/Sidebar'
 
 export default function DashboardLayout({
