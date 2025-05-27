@@ -2,11 +2,14 @@
 
 import { useState } from 'react'
 import dynamic from 'next/dynamic'
-import { DonutChart, Card, Title } from '@tremor/react'
 import { Package, Users, DollarSign, Clock } from 'lucide-react'
 import { MetricCard } from '@/components/ui/metric-card'
 import { ApexOptions } from 'apexcharts'
 import { OrderStatusCard } from '@/components/ui/order-status-card'
+import { OrderVolumeCard } from '@/components/ui/order-volume-card'
+import { CustomerStatsCard } from '@/components/ui/customer-stats-card'
+import { SalesChartCard } from '@/components/ui/sales-chart-card'
+import { OrdersTable } from '@/components/ui/orders-table'
 
 const Chart = dynamic(() => import('react-apexcharts'), { ssr: false })
 
@@ -42,7 +45,46 @@ const volumeBreakdown = [
     { name: 'Track Light', value: 11.13 },
     { name: 'Others', value: 11.13 },
 ]
-
+const orders = [
+    {
+        id: '302012',
+        product: 'Chandelier',
+        additionalProducts: '+3 other products',
+        date: '1 min ago',
+        customer: {
+            name: 'Jessica Jackson',
+            email: 'jessicajackson@gmail.com'
+        },
+        total: 150000,
+        payment: 'Paid' as const,
+        status: 'Processing' as const
+    },
+    {
+        id: '302011',
+        product: 'Wall Light',
+        additionalProducts: '+1 other products',
+        date: '1 min ago',
+        customer: {
+            name: 'Jessica Jackson',
+            email: 'jessicajackson@gmail.com'
+        },
+        total: 150000,
+        payment: 'Pending' as const,
+        status: 'Placed' as const
+    },
+    {
+        id: '302002',
+        product: 'POP/Surface Light',
+        date: '5 hour ago',
+        customer: {
+            name: 'Jessica Jackson',
+            email: 'jessicajackson@gmail.com'
+        },
+        total: 150000,
+        payment: 'Paid' as const,
+        status: 'Shipped' as const
+    }
+]
 export default function Dashboard() {
     const [timeframe, setTimeframe] = useState('30 Days')
 
@@ -105,8 +147,8 @@ export default function Dashboard() {
     }]
 
     return (
-        <div className="space-y-6">
-            <div className="grid items-center px-5 py-5 border-b border-[#e1dede90] grid-cols-2 justify-between">
+        <div className="space-y-6 pb-[5rem]">
+            <div className="grid items-center px-5 py-5 border-b bg-white border-[#e1dede90] grid-cols-2 justify-between">
                 <h1 className="text-xl   text-[#667085]">Dashboard Overview</h1>
                 <div className="relative w-full">
                     <input
@@ -130,6 +172,7 @@ export default function Dashboard() {
                     icon={DollarSign}
                     iconBgColor="bg-[#EEF4FF]"
                     iconColor="text-[#4C8EDA]"
+                    borderColor="border-[#4C8EDA10]"
                 />
                 <MetricCard
                     title="Total Orders"
@@ -137,7 +180,8 @@ export default function Dashboard() {
                     change={{ value: "+15%", trend: "up" }}
                     icon={Package}
                     iconBgColor="bg-[#ECFDF3]"
-                    iconColor="text-green-600"
+                    iconColor="text-[#16A34A]"
+                    borderColor="border-[#16A34A10]"
                 />
                 <MetricCard
                     title="Total Customers"
@@ -145,7 +189,8 @@ export default function Dashboard() {
                     change={{ value: "+10%", trend: "up" }}
                     icon={Users}
                     iconBgColor="bg-[#FEF6EE]"
-                    iconColor="text-orange-600"
+                    iconColor="text-[#EA580C]"
+                    borderColor="border-[#EA580C10]"
                 />
                 <MetricCard
                     title="Inventory Level"
@@ -153,42 +198,20 @@ export default function Dashboard() {
                     change={{ value: "-8%", trend: "down" }}
                     icon={Clock}
                     iconBgColor="bg-[#EEF4FF]"
-                    iconColor="text-blue-600"
+                    iconColor="text-[#2563EB]"
+                    borderColor="border-[#2563EB10]"
                 />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-5">
-                <Card className="lg:col-span-2 p-6 shadow-sm border bg-[#FFFFFF] border-[#E0E2E7] rounded-2xl">
-                    <div className="flex items-center justify-between mb-6">
-                        <div>
-                            <p className="text-[#333843] text-md font-medium">₦40,689,500</p>
-                            <p className="text-[#667085] text-sm">Total Sales</p>
-                        </div>
-                        <div className="flex gap-2 bg-white rounded-[14px] p-1 border border-[#E0E2E7]">
-                            {['All Date', '12 Months', '30 Days', '7 Days', '24 Hour'].map((option) => (
-                                <button
-                                    key={option}
-                                    onClick={() => setTimeframe(option)}
-                                    className={`px-4 py-2 rounded-[10px] text-sm font-medium transition-colors ${timeframe === option
-                                        ? 'bg-[#DEDEFA] bg-opacity-10 text-[#5C59E8]'
-                                        : 'text-[#667085] hover:bg-gray-50'
-                                        }`}
-                                >
-                                    {option}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="h-[300px] bg-[#FFFFFF]">
-                        <Chart
-                            options={chartOptions}
-                            series={chartSeries}
-                            type="area"
-                            height="100%"
-                            width="100%"
-                        />
-                    </div>
-                </Card>
+                <div className="col-span-2 grid">
+                    <SalesChartCard
+                        data={salesData}
+                        total="₦40,689,500"
+                        timeframe={timeframe}
+                        onTimeframeChange={setTimeframe}
+                    />
+                </div>
 
                 <OrderStatusCard
                     data={orderStatus}
@@ -196,7 +219,41 @@ export default function Dashboard() {
                     change="+10%"
                 />
             </div>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 px-5">
+                <div className="col-span-2 grid">
+
+                    <CustomerStatsCard
+                        data={[
+                            { month: 'Jan', active: 19000, newSignups: 11000 },
+                            { month: 'Feb', active: 25000, newSignups: 12000 },
+                            { month: 'Mar', active: 35000, newSignups: 18000 },
+                            { month: 'Apr', active: 37678, newSignups: 11000 },
+                            { month: 'May', active: 40000, newSignups: 12000 },
+                            { month: 'Jun', active: 22000, newSignups: 25000 },
+                            { month: 'Jul', active: 22000, newSignups: 21000 },
+                            { month: 'Aug', active: 40000, newSignups: 12000 }
+                        ]}
+                        selectedYear="2025"
+                    />
+                </div>
+
+                <OrderVolumeCard data={volumeBreakdown} />
+            </div>
+            <div className="px-5">
+
+                <OrdersTable
+                    orders={orders}
+                    currentPage={1}
+                    totalPages={5}
+                    onPageChange={(page) => console.log('Page changed:', page)}
+                    onDateSelect={(date) => console.log('Date selected:', date)}
+                    onFilterChange={() => console.log('Filter changed')}
+                />
+
+            </div>
+
         </div>
     )
 }
+
 

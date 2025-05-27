@@ -41,12 +41,12 @@ export default function Sidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="w-[280px] bg-[#4C8EDA] min-h-screen p-4 flex flex-col">
+    <aside className="w-[250px] bg-[#4C8EDA] min-h-screen p-4 flex flex-col">
       <div className="flex items-center relative mt-3 w-full h-[2.5rem] py-5 gap-3 px-2 mb-8">
         <Image src="/logo.png" alt="Steadfast" fill className=" absolute object-contain" />
       </div>
       
-      <nav className="flex-1 space-y-1 ">
+      <nav className="flex-1 space-y-1.5 ">
         {menuItems.map((item,i) => {
           const Icon = item.icon
           const isActive = pathname === item.href
