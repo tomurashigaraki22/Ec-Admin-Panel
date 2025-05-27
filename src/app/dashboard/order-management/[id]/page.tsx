@@ -337,28 +337,28 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                             </tbody>
                         </table>
 
-                        <div className="mt-6 space-y-2">
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-[#667085]">Sub total</span>
-                                <span className="text-[#333843]">NGN 242,700</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-[#667085]">Saving</span>
-                                <span className="text-red-500">-NGN 1,000</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-[#667085]">Sub total</span>
-                                <span className="text-[#333843]">NGN 6,000</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm">
-                                <span className="text-[#667085]">Sub total</span>
-                                <span className="text-[#333843]">A03467</span>
-                            </div>
-                            <div className="flex items-center justify-between text-sm font-medium">
-                                <span className="text-[#667085]">Estimated Total</span>
-                                <span className="text-[#333843]">NGN 249,700</span>
-                            </div>
-                        </div>
+                        <div className="mt-6 space-y-2  ">
+                                 <div className="flex items-center justify-between text-sm">
+                                    <span className="text-[#667085]">Sub total</span>
+                                    <span className="text-[#333843]">NGN 242,700</span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-[#667085]">Saving</span>
+                                    <span className="text-red-500">-NGN 1,000</span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-[#667085]">Sub total</span>
+                                    <span className="text-[#333843]">NGN 6,000</span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-[#667085]">Sub total</span>
+                                    <span className="text-[#333843]">A03467</span>
+                                </div>
+                                <div className="flex items-center justify-between text-sm font-medium">
+                                    <span className="text-[#667085]">Estimated Total</span>
+                                    <span className="text-[#333843]">NGN 249,700</span>
+                                </div>
+                         </div>
                     </div>
                 </div>
             </div>
