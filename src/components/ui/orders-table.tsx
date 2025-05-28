@@ -5,15 +5,17 @@ type OrderStatus = 'Processing' | 'Placed' | 'Shipped' | 'Delivered' | 'Cancelle
 
 type Order = {
     id: string
-    product: string
-    additionalProducts?: string
+    product: {
+        name: string
+        additional_count?: number
+    }
     date: string
     customer: {
         name: string
         email: string
     }
     total: number
-    payment: 'Paid' | 'Pending' | 'Failed'
+    payment_status: 'paid' | 'unpaid' | 'Failed'
     status: OrderStatus
 }
 
@@ -127,14 +129,14 @@ export function OrdersTable({
                                     />
                                 </td>
                                 <td className="px-6 py-4 text-xs text-[#333843]">{order.id}</td>
-                                <td className="px-6 py-4">
-                                    <div className="text-xs">
-                                        <div className="font-medium text-[#333843]">{order.product}</div>
-                                        {order.additionalProducts && (
-                                            <div className="text-[#667085]">{order.additionalProducts}</div>
-                                        )}
-                                    </div>
-                                </td>
+<td className="px-6 py-4">
+    <div className="text-xs">
+        <div className="font-medium text-[#333843]">{order.product.name}</div>
+        {order.product.additional_count !== undefined && (
+            <div className="text-[#667085]">Additional Count: {order.product.additional_count}</div>
+        )}
+    </div>
+</td>
                                 <td className="px-6 py-4 text-xs text-[#667085]">{order.date}</td>
                                 <td className="px-6 py-4">
                                     <div className="text-xs">
@@ -142,13 +144,13 @@ export function OrdersTable({
                                         <div className="text-[#667085]">{order.customer.email}</div>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 text-xs text-[#333843]">${order.total.toFixed(2)}</td>
+                                <td className="px-6 py-4 text-xs text-[#333843]">₦{order.total.toFixed(2)}</td>
                                 <td className="px-6 py-4">
-                                    <span className={`px-2 py-1 text-xs rounded-full ${order.payment === 'Paid' ? 'bg-green-50 text-green-500' :
-                                        order.payment === 'Failed' ? 'bg-red-50 text-red-500' :
+                                    <span className={`px-2 py-1 text-xs rounded-full ${order.payment_status === 'paid' ? 'bg-green-50 text-green-500' :
+                                        order.payment_status === 'unpaid' ? 'bg-red-50 text-red-500' :
                                             'bg-orange-50 text-orange-500'
                                         }`}>
-                                        {order.payment}
+                                        {order.payment_status}
                                     </span>
                                 </td>
                                 <td className="px-6 py-4">

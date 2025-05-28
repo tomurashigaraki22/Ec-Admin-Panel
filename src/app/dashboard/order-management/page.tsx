@@ -1,24 +1,56 @@
 'use client'
 
 import { OrdersTable } from '@/components/ui/orders-table'
+import { OrderTypes } from '../types'
+import { useEffect, useState } from 'react'
+import Cookies from 'js-cookie'
 
-const orders = [
-    {
-        id: '302012',
-        product: 'Chandelier',
-        additionalProducts: '+3 other products',
-        date: '1 min ago',
-        customer: {
-            name: 'Jessica Jackson',
-            email: 'jessicajackson@gmail.com'
-        },
-        total: 150000,
-        payment: 'Paid' as const,
-        status: 'Processing' as const
-    },
- ]
 
 export default function OrderManagementPage() {
+    const [orders, setOrders] = useState<OrderTypes[]>([])
+    const [error, setError] = useState<string | null>(null)
+    const [currentPage, setCurrentPage] = useState(1)
+
+
+    const fetchOrders = async () => {
+        console.log("Error: ", error)
+        try {
+            const token = Cookies.get('token')
+            console.log("Token: ", token)
+            if (!token) {
+                throw new Error('Authentication token not found')
+            }
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/orders`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                }
+            })
+            if (response.status === 500) {
+                throw new Error('Server error. Please try again later.')
+            }
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}))
+                throw new Error(errorData.error || `Request failed with status ${response.status}`)
+            }
+            const data = await response.json()
+            setOrders(data.orders)
+        }   
+        catch (err) {
+            const errorMessage = err instanceof Error? err.message : 'Failed to fetch orders'
+            setError(errorMessage)
+            console.error('Error fetching orders:', err)
+        }
+    }
+
+    useEffect(() => {
+        fetchOrders()
+    }, [])
+
+
+
     return (
         <div className="space-y-6 pb-[5rem]">
             <div className="grid items-center px-5 py-5 border-b bg-white border-[#e1dede90] grid-cols-2 justify-between">
@@ -58,9 +90,44 @@ export default function OrderManagementPage() {
 
                 <OrdersTable
                     orders={orders}
-                    currentPage={1}
+                    currentPage={currentPage}
                     totalPages={5}
-                    onPageChange={(page) => console.log('Page changed:', page)}
+                    onPageChange={(page) => {
+                        const fetchOrders = async () => {
+                            try {
+                                const token = Cookies.get('token')
+                                console.log("Token: ", token)
+                                if (!token) {
+                                    throw new Error('Authentication token not found')
+                                }
+                                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/orders?page=${page}`, {
+                                    method: 'GET',
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`,
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json'
+                                    }
+                                })
+                                if (response.status === 500) {
+                                    throw new Error('Server error. Please try again later.')
+                                }
+                                if (!response.ok) {
+                                    const errorData = await response.json().catch(() => ({}))
+                                    throw new Error(errorData.error || `Request failed with status ${response.status}`)
+                                }
+                                const data = await response.json()
+                                setOrders(data.orders)
+                                setCurrentPage(page)
+                            }   
+                            catch (err) {
+                                const errorMessage = err instanceof Error? err.message : 'Failed to fetch orders'
+                                setError(errorMessage)
+                                console.error('Error fetching orders:', err)
+                            }
+                        }
+
+                        fetchOrders()
+                    }}
                     onDateSelect={(date) => console.log('Date selected:', date)}
                     onFilterChange={() => console.log('Filter changed')}
                     // full

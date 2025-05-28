@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Package, Users, DollarSign, Clock } from 'lucide-react'
 import { MetricCard } from '@/components/ui/metric-card'
 import { OrderStatusCard } from '@/components/ui/order-status-card'
@@ -8,82 +8,243 @@ import { OrderVolumeCard } from '@/components/ui/order-volume-card'
 import { CustomerStatsCard } from '@/components/ui/customer-stats-card'
 import { SalesChartCard } from '@/components/ui/sales-chart-card'
 import { OrdersTable } from '@/components/ui/orders-table'
+import Cookies from 'js-cookie'
+import { DashboardData, OrderTypes } from '@/app/dashboard/types'
 
  
-const salesData = [
-    { date: '01', value: 800000 },
-    { date: '03', value: 750000 },
-    { date: '05', value: 900000 },
-    { date: '07', value: 750000 },
-    { date: '09', value: 800000 },
-    { date: '11', value: 900000 },
-    { date: '13', value: 950000 },
-    { date: '15', value: 1000000 },
-    { date: '17', value: 1200000 },
-    { date: '19', value: 1000000 },
-    { date: '21', value: 1100000 },
-    { date: '23', value: 1200000 },
-    { date: '25', value: 900000 },
-    { date: '27', value: 600000 },
-    { date: '29', value: 900000 },
-    { date: '31', value: 850000 },
-]
+// const salesData = [
+//     { date: '01', value: 800000 },
+//     { date: '03', value: 750000 },
+//     { date: '05', value: 900000 },
+//     { date: '07', value: 750000 },
+//     { date: '09', value: 800000 },
+//     { date: '11', value: 900000 },
+//     { date: '13', value: 950000 },
+//     { date: '15', value: 1000000 },
+//     { date: '17', value: 1200000 },
+//     { date: '19', value: 1000000 },
+//     { date: '21', value: 1100000 },
+//     { date: '23', value: 1200000 },
+//     { date: '25', value: 900000 },
+//     { date: '27', value: 600000 },
+//     { date: '29', value: 900000 },
+//     { date: '31', value: 850000 },
+// ]
 
-const orderStatus = [
-    { name: 'Completed', value: 50 },
-    { name: 'Processing', value: 30 },
-    { name: 'Shipped', value: 20 },
-    { name: 'Cancelled', value: 20 },
-]
+// const orderStatus = [
+//     { name: 'Completed', value: 50 },
+//     { name: 'Processing', value: 30 },
+//     { name: 'Shipped', value: 20 },
+//     { name: 'Cancelled', value: 20 },
+// ]
 
-const volumeBreakdown = [
-    { name: 'Chandelier', value: 16.72 },
-    { name: 'Track Light', value: 24.99 },
-    { name: 'Track Light', value: 11.13 },
-    { name: 'Others', value: 11.13 },
-]
-const orders = [
-    {
-        id: '302012',
-        product: 'Chandelier',
-        additionalProducts: '+3 other products',
-        date: '1 min ago',
-        customer: {
-            name: 'Jessica Jackson',
-            email: 'jessicajackson@gmail.com'
-        },
-        total: 150000,
-        payment: 'Paid' as const,
-        status: 'Processing' as const
-    },
-    {
-        id: '302011',
-        product: 'Wall Light',
-        additionalProducts: '+1 other products',
-        date: '1 min ago',
-        customer: {
-            name: 'Jessica Jackson',
-            email: 'jessicajackson@gmail.com'
-        },
-        total: 150000,
-        payment: 'Pending' as const,
-        status: 'Placed' as const
-    },
-    {
-        id: '302002',
-        product: 'POP/Surface Light',
-        date: '5 hour ago',
-        customer: {
-            name: 'Jessica Jackson',
-            email: 'jessicajackson@gmail.com'
-        },
-        total: 150000,
-        payment: 'Paid' as const,
-        status: 'Shipped' as const
-    }
-]
+// const volumeBreakdown = [
+//     { name: 'Chandelier', value: 16.72 },
+//     { name: 'Track Light', value: 24.99 },
+//     { name: 'Track Light', value: 11.13 },
+//     { name: 'Others', value: 11.13 },
+// ]
+// const orders = [
+//     {
+//         id: '302012',
+//         product: 'Chandelier',
+//         additionalProducts: '+3 other products',
+//         date: '1 min ago',
+//         customer: {
+//             name: 'Jessica Jackson',
+//             email: 'jessicajackson@gmail.com'
+//         },
+//         total: 150000,
+//         payment: 'Paid' as const,
+//         status: 'Processing' as const
+//     },
+//     {
+//         id: '302011',
+//         product: 'Wall Light',
+//         additionalProducts: '+1 other products',
+//         date: '1 min ago',
+//         customer: {
+//             name: 'Jessica Jackson',
+//             email: 'jessicajackson@gmail.com'
+//         },
+//         total: 150000,
+//         payment: 'Pending' as const,
+//         status: 'Placed' as const
+//     },
+//     {
+//         id: '302002',
+//         product: 'POP/Surface Light',
+//         date: '5 hour ago',
+//         customer: {
+//             name: 'Jessica Jackson',
+//             email: 'jessicajackson@gmail.com'
+//         },
+//         total: 150000,
+//         payment: 'Paid' as const,
+//         status: 'Shipped' as const
+//     }
+// ]
 export default function Dashboard() {
     const [timeframe, setTimeframe] = useState('30 Days')
+    const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
+    const [fetchingData, setFetchingData] = useState(true)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [total, setTotal] = useState<string>("0")
+    const [orders, setOrders] = useState<OrderTypes[] | null>(null);
+    const [error, setError] = useState('')
+
+    useEffect(() => {
+        console.log("TOOtal: ", total)
+        const fetchData = async () => {
+            setFetchingData(true)
+            try {
+                const token = Cookies.get('token')
+                console.log("Token: ", token)
+                if (!token) {
+                    throw new Error('Authentication token not found')
+                }
+
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/dashboard/stats`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    credentials: 'include', // Include credentials in the request
+                })
+
+                if (response.status === 500) {
+                    throw new Error('Server error. Please try again later.')
+                }
+
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}))
+                    throw new Error(errorData.error || `Request failed with status ${response.status}`)
+                }
+
+                const data = await response.json()
+                setDashboardData(data)
+                setError('')
+            } catch (err) {
+                const errorMessage = err instanceof Error ? err.message : 'Failed to fetch dashboard data'
+                setError(errorMessage)
+                console.error('Error fetching dashboard data:', err)
+            } finally {
+                setFetchingData(false)
+            }
+        }
+
+        const fetchOrders = async () => {
+            try {
+                const token = Cookies.get('token')
+                console.log("Token: ", token)
+                if (!token) {
+                    throw new Error('Authentication token not found')
+                }
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/orders`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    }
+                })
+                if (response.status === 500) {
+                    throw new Error('Server error. Please try again later.')
+                }
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}))
+                    throw new Error(errorData.error || `Request failed with status ${response.status}`)
+                }
+                const data = await response.json()
+                setOrders(data.orders)
+            }   
+            catch (err) {
+                const errorMessage = err instanceof Error? err.message : 'Failed to fetch orders'
+                setError(errorMessage)
+                console.error('Error fetching orders:', err)
+            }
+        }
+
+        fetchData()
+        fetchOrders()
+    }, [])
+
+    const formatTimelineData = (data: any, timeframe: string) => {
+        switch(timeframe) {
+          case '24 Hour':
+            return data.sales_timeline.daily.data.map((item: any) => ({
+              date: item.date,
+              value: item.value
+            })) || [];
+          case '7 Days':
+          case '30 Days':
+            return data.sales_timeline.monthly.data.map((item: any) => ({
+              date: item.date,
+              value: item.value
+            })) || [];
+          case '12 Months':
+            return data.sales_timeline.yearly.data.map((item: any) => ({
+              date: `Month ${item.month}`,
+              value: item.value
+            })) || [];
+          default:
+            return [];
+        }
+      }
+      
+      const formatSalesTotal = (amount: number) => {
+        if (amount >= 1000000) {
+          return `₦${(amount / 1000000).toFixed(1)}M`;
+        } else if (amount >= 1000) {
+          return `₦${(amount / 1000).toFixed(1)}K`;
+        }
+        return `₦${amount.toFixed(2)}`;
+      }
+
+    const orderStatus = [
+        { name: 'Completed', value: dashboardData?.order_status.completed || 0 },
+        { name: 'Processing', value: dashboardData?.order_status.processing || 0 },
+        { name: 'Pending', value: dashboardData?.order_status.pending || 0 },
+        { name: 'Shipped', value: dashboardData?.order_status.shipped || 0 },
+        { name: 'Cancelled', value: dashboardData?.order_status.cancelled || 0 }
+    ]
+
+    // Calculate total from all statuses
+    const totalOrders = orderStatus.reduce((sum, status) => sum + status.value, 0)
+    console.log("Total Orders: ", totalOrders)
+
+    // Format total orders with k/m suffix if needed
+    const formatTotal = (num: number) => {
+        if (num >= 1000000) return `${(num / 1000000).toFixed(1)}m`
+        if (num >= 1000) return `${(num / 1000).toFixed(1)}k`
+        console.log("Total Format Orders: ", num)
+        return num.toString()
+    }
+
+    const formatCustomerStatistics = (data: any, year: string) => {
+        console.log("Data: ", data.customer_statistics[year], " year: ", year);
+        return data.customer_statistics[year].map((item: any) => ({
+            month: item.month,
+            active: item.active_users,
+            newSignups: item.new_signups
+        })) || [];
+    }
+
+
+
+    if (fetchingData) {
+        return <div>Loading dashboard data...</div>
+    }
+
+    if (error) {
+        return <div>Error: {error}</div>
+    }
+
+    if (!dashboardData) {
+        return <div>No data available</div>
+    }
 
    
     return (
@@ -107,7 +268,7 @@ export default function Dashboard() {
             <div className="grid px-5 grid-cols-1 md:grid-cols-2 lg:grid-cols-4 mt-5 gap-4">
                 <MetricCard
                     title="Total Sales"
-                    value="₦40,689,500"
+                    value={`${dashboardData.overview.total_sales.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}`}
                     change={{ value: "+12%", trend: "up" }}
                     icon={DollarSign}
                     iconBgColor="bg-[#EEF4FF]"
@@ -116,7 +277,7 @@ export default function Dashboard() {
                 />
                 <MetricCard
                     title="Total Orders"
-                    value="240,500"
+                    value={`${dashboardData.overview.total_orders ?? 0}`}
                     change={{ value: "+15%", trend: "up" }}
                     icon={Package}
                     iconBgColor="bg-[#ECFDF3]"
@@ -125,7 +286,7 @@ export default function Dashboard() {
                 />
                 <MetricCard
                     title="Total Customers"
-                    value="8,000"
+                    value={`${dashboardData.overview.total_customers ?? 0}`}
                     change={{ value: "+10%", trend: "up" }}
                     icon={Users}
                     iconBgColor="bg-[#FEF6EE]"
@@ -134,7 +295,7 @@ export default function Dashboard() {
                 />
                 <MetricCard
                     title="Inventory Level"
-                    value="24,500"
+                    value={Number(dashboardData.overview.inventory_level).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     change={{ value: "-8%", trend: "down" }}
                     icon={Clock}
                     iconBgColor="bg-[#EEF4FF]"
@@ -145,47 +306,93 @@ export default function Dashboard() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 px-5">
                 <div className="col-span-2 grid">
-                    <SalesChartCard
-                        data={salesData}
-                        total="₦40,689,500"
-                        timeframe={timeframe}
-                        onTimeframeChange={setTimeframe}
-                    />
+                <SalesChartCard
+        data={dashboardData ? formatTimelineData(dashboardData, timeframe) : []}
+        total={dashboardData ? formatSalesTotal(dashboardData.sales_timeline.last_30d) : '₦0'}
+        timeframe={timeframe}
+        onTimeframeChange={(newTimeframe) => {
+          setTimeframe(newTimeframe)
+          // Update total based on timeframe
+          if (dashboardData) {
+            switch(newTimeframe) {
+                case '24 Hour':
+                  setTotal(formatSalesTotal(dashboardData.sales_timeline.last_24h))
+                  break;
+                case '7 Days':
+                  setTotal(formatSalesTotal(dashboardData.sales_timeline.last_7d))
+                  break;
+                case '30 Days':
+                  setTotal(formatSalesTotal(dashboardData.sales_timeline.last_30d))
+                  break;
+                case '12 Months':
+                  setTotal(formatSalesTotal(dashboardData.sales_timeline.last_12m))
+                  break;
+              }
+              
+          }
+        }}
+      />
                 </div>
 
                 <OrderStatusCard
                     data={orderStatus}
-                    total="12k"
-                    change="+10%"
+                    total={formatTotal(totalOrders)}
+                    change={`${((totalOrders - dashboardData.overview.total_orders) / dashboardData.order_status.pending * 100).toFixed(1)}%`}
                 />
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 px-5">
                 <div className="col-span-2 grid">
 
                     <CustomerStatsCard
-                        data={[
-                            { month: 'Jan', active: 19000, newSignups: 11000 },
-                            { month: 'Feb', active: 25000, newSignups: 12000 },
-                            { month: 'Mar', active: 35000, newSignups: 18000 },
-                            { month: 'Apr', active: 37678, newSignups: 11000 },
-                            { month: 'May', active: 40000, newSignups: 12000 },
-                            { month: 'Jun', active: 22000, newSignups: 25000 },
-                            { month: 'Jul', active: 22000, newSignups: 21000 },
-                            { month: 'Aug', active: 40000, newSignups: 12000 }
-                        ]}
+                        data={formatCustomerStatistics(dashboardData, '2025')}
                         selectedYear="2025"
                     />
                 </div>
 
-                <OrderVolumeCard data={volumeBreakdown} />
+                <OrderVolumeCard data={dashboardData.order_volume_breakdown} />
             </div>
             <div className="px-5">
 
                 <OrdersTable
-                    orders={orders}
-                    currentPage={1}
+                    orders={orders ?? []}
+                    currentPage={currentPage}
                     totalPages={5}
-                    onPageChange={(page) => console.log('Page changed:', page)}
+                    onPageChange={(page) => {
+                        const fetchOrders = async () => {
+                            try {
+                                const token = Cookies.get('token')
+                                console.log("Token: ", token)
+                                if (!token) {
+                                    throw new Error('Authentication token not found')
+                                }
+                                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/orders?page=${page}`, {
+                                    method: 'GET',
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`,
+                                        'Content-Type': 'application/json',
+                                        'Accept': 'application/json'
+                                    }
+                                })
+                                if (response.status === 500) {
+                                    throw new Error('Server error. Please try again later.')
+                                }
+                                if (!response.ok) {
+                                    const errorData = await response.json().catch(() => ({}))
+                                    throw new Error(errorData.error || `Request failed with status ${response.status}`)
+                                }
+                                const data = await response.json()
+                                setOrders(data.orders)
+                                setCurrentPage(page)
+                            }   
+                            catch (err) {
+                                const errorMessage = err instanceof Error? err.message : 'Failed to fetch orders'
+                                setError(errorMessage)
+                                console.error('Error fetching orders:', err)
+                            }
+                        }
+
+                        fetchOrders()
+                    }}
                     onDateSelect={(date) => console.log('Date selected:', date)}
                     onFilterChange={() => console.log('Filter changed')}
                 />

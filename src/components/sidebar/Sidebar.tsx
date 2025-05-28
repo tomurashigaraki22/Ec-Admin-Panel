@@ -2,7 +2,7 @@
 
 import Image from 'next/image'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import {
   LayoutDashboard,
@@ -19,6 +19,7 @@ import {
   Shield,
   Image as ImageIcon
 } from 'lucide-react'
+import Cookies from 'js-cookie'
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
@@ -38,6 +39,7 @@ const menuItems = [
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
 
   return (
     <aside className="w-[280px] bg-[#4C8EDA] min-h-screen p-4 flex flex-col">
@@ -84,6 +86,8 @@ export default function Sidebar() {
 
         <button
           onClick={() => {
+            Cookies.remove('token')
+            router.push('/')
            }}
           className="w-full flex items-center gap-3 px-3 py-2.5 text-white/80 hover:bg-white/10 hover:text-white rounded-lg transition-colors text-sm font-medium"
         >

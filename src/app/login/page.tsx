@@ -12,8 +12,30 @@ export default function Login() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        Cookies.set('token', 'dummy-token', { expires: 7 })
-        router.push('/dashboard')
+        try{
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            })
+            const data = await response.json()
+            console.log("data: ", data)
+            if (!response.ok) {
+                throw new Error(data.message || 'Something went wrong')
+            }
+
+            if (data.status === 'success') {
+                Cookies.set('token', data.data.token, { expires: 7 })
+                router.push('/dashboard')
+            } else {
+                throw new Error(data.message || 'Something went wrong')
+            }
+        } catch (error: String | any) {
+            console.error('Error during login:', error)
+            alert(error.message || 'Something went wrong')
+        }
     }
 
     return (

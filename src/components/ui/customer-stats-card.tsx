@@ -15,7 +15,31 @@ type CustomerStatsCardProps = {
     selectedYear: string
 }
 
+const monthNames = {
+    "01": "Jan",
+    "02": "Feb",
+    "03": "Mar",
+    "04": "Apr",
+    "05": "May",
+    "06": "Jun",
+    "07": "Jul",
+    "08": "Aug",
+    "09": "Sep",
+    "10": "Oct",
+    "11": "Nov",
+    "12": "Dec",
+  }
+
 export function CustomerStatsCard({ data, selectedYear }: CustomerStatsCardProps) {
+    const chartData = data.map((item) => ({
+        month: monthNames[item.month as keyof typeof monthNames] || item.month,
+        active: item.active,
+        newSignups: item.newSignups,
+        total: item.active + item.newSignups,
+      }))
+        // Calculate max value for better y-axis scaling
+  const maxValue = Math.max(...chartData.map((item) => Math.max(item.active, item.newSignups)))
+  const yAxisMax = Math.max(10, Math.ceil(maxValue * 1.2)) // Minimum 10, or 20% above max value
     const chartOptions: ApexOptions = {
         chart: {
             type: 'bar' as const,
@@ -48,7 +72,7 @@ export function CustomerStatsCard({ data, selectedYear }: CustomerStatsCardProps
             },
             tickAmount: 5,
             min: 0,
-            max: 50000
+            max: yAxisMax
         },
         tooltip: {
             theme: 'light',
@@ -89,6 +113,7 @@ export function CustomerStatsCard({ data, selectedYear }: CustomerStatsCardProps
                         className="px-3 py-1.5 border border-[#E0E2E7] rounded-lg text-sm text-[#667085] bg-white outline-none"
                     >
                         <option>2025</option>
+                        <option>2024</option>
                     </select>
                 </div>
             </div>

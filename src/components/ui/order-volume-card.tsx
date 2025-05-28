@@ -71,7 +71,7 @@ export function OrderVolumeCard({ data }: OrderVolumeCardProps) {
                             <div className="w-2 h-2 rounded-full" style={{ backgroundColor: chartOptions.colors![index] }} />
                             <span className="text-[#667085]">{item.name}</span>
                         </div>
-                        <span className="font-medium text-[#333843]">{item.value}%</span>
+                        <span className="font-medium text-[#333843]">{item.value.toLocaleString('en-US', { style: 'currency', currency: 'NGN' })}</span>
                     </div>
                 ))}
             </div>

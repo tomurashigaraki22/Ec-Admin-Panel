@@ -1,22 +1,107 @@
 'use client'
 
 import { File } from "lucide-react"
-
+import { useState, useEffect } from "react"
+import Cookies from "js-cookie"
+import { useParams } from "next/navigation"
 type OrderStatus = 'Processing' | 'Placed' | 'Shipped' | 'Arrived' | 'Delivered'
 
-export default function OrderDetailsPage({ params }: { params: { id: string } }) {
-    const currentStatus: OrderStatus = 'Processing'
-
-    const getStatusColor = (status: OrderStatus, isActive: boolean) => {
-        if (!isActive) return 'text-[#667085]'
-        return {
-            Processing: 'text-[#5C59E8]',
-            Placed: 'text-[#5C59E8]',
-            Shipped: 'text-[#5C59E8]',
-            Arrived: 'text-[#5C59E8]',
-            Delivered: 'text-[#5C59E8]'
-        }[status]
+type CartItem = {
+    product_id: string
+    name: string
+    price: number
+    quantity: number
+    image_url: string | null
+  }
+  
+  type OrderDetails = {
+    order_id: string
+    customer: {
+      name: string
+      email: string
+      phone: string
+      address: string
     }
+    delivery: {
+      state: string
+      city: string
+      pickup_location: string
+      duration: string
+    }
+    cart_items: CartItem[]
+    pricing: {
+      subtotal: number
+      shipping_fee: number
+      total: number
+    }
+    payment: {
+      status: string
+      reference: string
+    }
+    order_status: OrderStatus
+    coupon_applied: string | null
+    notes: string | null
+    created_at: string
+    updated_at: string
+  }
+
+export default function OrderDetailsPage() {
+    const params = useParams()
+    console.log("Params: ", params)
+  const orderId = params?.id as string // or use params['order_id'] if TS complains
+
+  const [orderDetails, setOrderDetails] = useState<OrderDetails | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+    useEffect(() => {
+        if (!orderId) return
+        const fetchOrderDetails = async () => {
+            try {
+                const token = Cookies.get('token') // Get token from storage
+                if (!token) {
+                    throw new Error('Authentication token not found')
+                }
+
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/order-details/${params.id}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                })
+
+                console.log("Response: ", response)
+
+                if (!response.ok) {
+                    const errorData = await response.json()
+                    throw new Error(errorData.error || 'Failed to fetch order details')
+                }
+
+                const data = await response.json()
+                console.log("Data: ", data)
+                setOrderDetails(data)
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'An error occurred')
+            } finally {
+                setLoading(false)
+            }
+        }
+
+        fetchOrderDetails()
+    }, [params.id])
+
+    const currentStatus = orderDetails?.order_status || 'Processing'
+
+    // const getStatusColor = (status: OrderStatus, isActive: boolean) => {
+    //     if (!isActive) return 'text-[#667085]'
+    //     return {
+    //         Processing: 'text-[#5C59E8]',
+    //         Placed: 'text-[#5C59E8]',
+    //         Shipped: 'text-[#5C59E8]',
+    //         Arrived: 'text-[#5C59E8]',
+    //         Delivered: 'text-[#5C59E8]'
+    //     }[status]
+    // }
 
     const isStatusActive = (status: OrderStatus) => {
         const order: Record<OrderStatus, number> = {
@@ -28,6 +113,10 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
         }
         return order[currentStatus] >= order[status]
     }
+
+    if (loading) return <div>Loading...</div>
+    if (error) return <div>Error: {error}</div>
+    if (!orderDetails) return <div>No order details found</div>
 
     return (
         <div className="space-y-6 pb-[5rem]">
@@ -96,8 +185,8 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                         <div className="absolute left-0 top-4 h-[2px] bg-[#5C59E8] w-[50%] " />
 
                         <div className="grid grid-cols-5 w-full ">
-                            {['Order Placed', 'Processing', 'Shipped', 'Arrived', 'Delivered'].map((status, index) => {
-                                const statusKey = status === 'Order Placed' ? 'Placed' : status;
+                            {['Pending', 'Processing', 'Shipped', 'Arrived', 'Delivered'].map((status, index) => {
+                                const statusKey = orderDetails.order_status === 'Processing' ? 'Processing' : status;
                                 const isActive = isStatusActive(statusKey as OrderStatus);
                                 return (
                                     <div key={index} className="relative col-span-1 z-10 text-center ">
@@ -188,7 +277,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                                         <path d="M2 8L6 12L14 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                     <span>Added</span>
-                                    <span className="text-[#333843]">23 Apr 2025</span>
+                                    <span className="text-[#333843]">{orderDetails.created_at.split("T")[0]}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-[#667085]">
                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -217,7 +306,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                                         <path d="M2 14C2 11.7909 4.68629 10 8 10C11.3137 10 14 11.7909 14 14" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                     <span>Customer</span>
-                                    <span className="text-[#333843]">Jessica Jackson</span>
+                                    <span className="text-[#333843]">{orderDetails.customer.name}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-[#667085]">
                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -225,14 +314,14 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                                         <path d="M14 3L8 8L2 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                     <span>Email</span>
-                                    <span className="text-[#333843]">jacksonjess@gmail.com</span>
+                                    <span className="text-[#333843]">{orderDetails.customer.email}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-[#667085]">
                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                                         <path d="M14.5 11.2V13.2C14.5 13.7304 14.2893 14.2391 13.9142 14.6142C13.5391 14.9893 13.0304 15.2 12.5 15.2C9.39 14.97 6.39 13.72 4 11.5C1.78 9.11 0.53 6.11 0.3 3C0.3 2.46957 0.510714 1.96086 0.885786 1.58579C1.26086 1.21071 1.76957 1 2.3 1H4.3C4.82 1 5.27 1.38 5.35 1.89C5.5 2.89 5.8 3.86 6.25 4.77C6.4 5.08 6.35 5.44 6.13 5.7L5.05 6.78C6.76 9.69 9.31 12.24 12.22 13.95L13.3 12.87C13.56 12.65 13.92 12.6 14.23 12.75C15.14 13.2 16.11 13.5 17.11 13.65C17.62 13.73 18 14.18 18 14.7V16.7Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                     <span>Phone</span>
-                                    <span className="text-[#333843]">+2348070011981</span>
+                                    <span className="text-[#333843]">{orderDetails.customer.phone}</span>
                                 </div>
                             </div>
                         </div>
@@ -246,7 +335,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                                         <path d="M5 7L7 7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                     <span>Address</span>
-                                    <span className="text-[#333843]">No 23 Michael Cresent</span>
+                                    <span className="text-[#333843]">{orderDetails.customer.address}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-[#667085]">
                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -255,7 +344,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                                         <path d="M8 2C9.5 3.5 10.5 5.5 10.5 8C10.5 10.5 9.5 12.5 8 14C6.5 12.5 5.5 10.5 5.5 8C5.5 5.5 6.5 3.5 8 2Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                     <span>State</span>
-                                    <span className="text-[#333843]">Enugu</span>
+                                    <span className="text-[#333843]">{orderDetails.delivery.state}</span>
                                 </div>
                                 <div className="flex items-center gap-2 text-[#667085]">
                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
@@ -263,7 +352,7 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                                         <path d="M8 14C11.3137 14 14 11.3137 14 8C14 4.68629 11.3137 2 8 2C4.68629 2 2 4.68629 2 8C2 11.3137 4.68629 14 8 14Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                                     </svg>
                                     <span>Pick up Location</span>
-                                    <span className="text-[#333843]">Young shall grow</span>
+                                    <span className="text-[#333843]">{orderDetails.delivery.pickup_location}</span>
                                 </div>
                             </div>
                         </div>
@@ -272,91 +361,70 @@ export default function OrderDetailsPage({ params }: { params: { id: string } })
                     <div className="mt-8">
                         <div className="flex items-center justify-between mb-6">
                             <h3 className="font-medium text-[#333843]">Order List</h3>
-                            <span className="px-2 py-1 bg-[#5C59E8] bg-opacity-10 text-[#5C59E8] text-sm rounded-full">3 Products</span>
+                            <span className="px-2 py-1 bg-[#5C59E8] bg-opacity-10 text-[#fff] text-sm rounded-full">{orderDetails.cart_items.length} Product(s)</span>
                         </div>
 
                         <table className="w-full">
-                            <thead>
-                                <tr className="border-b border-[#E0E2E7]">
-                                    <th className="px-6 py-4">
-                                        <input type="checkbox" className="rounded border-[#E0E2E7]" />
-                                    </th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-[#333843]">Order ID</th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-[#333843]">Product Name</th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-[#333843]">Quantity</th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-[#333843]">Price</th>
-                                    <th className="px-6 py-4 text-left text-sm font-medium text-[#333843]">Total</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr className="border-b border-[#E0E2E7]">
-                                    <td className="px-6 py-4">
-                                        <input type="checkbox" className="rounded border-[#E0E2E7]" />
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-[#5C59E8]">#302012</td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-[#F0F1F3] rounded-lg"></div>
-                                            <div className="text-sm text-[#333843]">Chandelier</div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-[#333843]">1 min ago</td>
-                                    <td className="px-6 py-4 text-sm text-[#333843]">N150,000</td>
-                                    <td className="px-6 py-4 text-sm text-[#333843]">N300,000</td>
-                                </tr>
-                                <tr className="border-b border-[#E0E2E7]">
-                                    <td className="px-6 py-4">
-                                        <input type="checkbox" className="rounded border-[#E0E2E7]" />
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-[#5C59E8]">#301600</td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-[#F0F1F3] rounded-lg"></div>
-                                            <div className="text-sm text-[#333843]">POP/Surface Light</div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-[#333843]">2 Apr 2025</td>
-                                    <td className="px-6 py-4 text-sm text-[#333843]">N150,000</td>
-                                    <td className="px-6 py-4 text-sm text-[#333843]">N150,000</td>
-                                </tr>
-                                <tr className="border-b border-[#E0E2E7]">
-                                    <td className="px-6 py-4">
-                                        <input type="checkbox" className="rounded border-[#E0E2E7]" />
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-[#5C59E8]">#301002</td>
-                                    <td className="px-6 py-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 bg-[#F0F1F3] rounded-lg"></div>
-                                            <div className="text-sm text-[#333843]">POP/Surface Light</div>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-[#333843]">24 Mar 2025</td>
-                                    <td className="px-6 py-4 text-sm text-[#333843]">N150,000</td>
-                                    <td className="px-6 py-4 text-sm text-[#333843]">N150,000</td>
-                                </tr>
-                            </tbody>
+                        <thead>
+                            <tr className="border-b border-[#E0E2E7]">
+                            <th className="px-6 py-4">
+                                <input type="checkbox" className="rounded border-[#E0E2E7]" />
+                            </th>
+                            <th className="px-6 py-4 text-left text-sm font-medium text-[#333843]">Order ID</th>
+                            <th className="px-6 py-4 text-left text-sm font-medium text-[#333843]">Product Name</th>
+                            <th className="px-6 py-4 text-left text-sm font-medium text-[#333843]">Quantity</th>
+                            <th className="px-6 py-4 text-left text-sm font-medium text-[#333843]">Price</th>
+                            <th className="px-6 py-4 text-left text-sm font-medium text-[#333843]">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {orderDetails.cart_items.map((item, index) => (
+                            <tr key={index} className="border-b border-[#E0E2E7]">
+                                <td className="px-6 py-4">
+                                <input type="checkbox" className="rounded border-[#E0E2E7]" />
+                                </td>
+                                <td className="px-6 py-4 text-sm text-[#5C59E8]">#{item.product_id}</td>
+                                <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                    <img
+                                    src={item.image_url ?? "https://via.placeholder.com/40"}
+                                    alt={item.name}
+                                    className="w-10 h-10 rounded-lg object-cover bg-[#F0F1F3]"
+                                    />
+                                    <div className="text-sm text-[#333843]">{item.name}</div>
+                                </div>
+                                </td>
+                                <td className="px-6 py-4 text-sm text-[#333843]">{item.quantity}</td>
+                                <td className="px-6 py-4 text-sm text-[#333843]">₦{item.price.toLocaleString()}</td>
+                                <td className="px-6 py-4 text-sm text-[#333843]">
+                                ₦{(item.price * item.quantity).toLocaleString()}
+                                </td>
+                            </tr>
+                            ))}
+                        </tbody>
                         </table>
+
 
                         <div className="mt-6 space-y-2  ">
                                  <div className="flex items-center justify-between text-sm">
                                     <span className="text-[#667085]">Sub total</span>
-                                    <span className="text-[#333843]">NGN 242,700</span>
+                                    <span className="text-[#333843]">NGN {orderDetails.pricing.subtotal.toLocaleString('en-us', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                                 </div>
-                                <div className="flex items-center justify-between text-sm">
+                                {/* <div className="flex items-center justify-between text-sm">
                                     <span className="text-[#667085]">Saving</span>
                                     <span className="text-red-500">-NGN 1,000</span>
-                                </div>
+                                </div> */}
                                 <div className="flex items-center justify-between text-sm">
                                     <span className="text-[#667085]">Sub total</span>
-                                    <span className="text-[#333843]">NGN 6,000</span>
+                                    <span className="text-[#333843]">NGN {orderDetails.pricing.shipping_fee.toLocaleString('en-us', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                                 </div>
-                                <div className="flex items-center justify-between text-sm">
+                                {/* <div className="flex items-center justify-between text-sm">
                                     <span className="text-[#667085]">Sub total</span>
                                     <span className="text-[#333843]">A03467</span>
-                                </div>
+                                </div> */}
                                 <div className="flex items-center justify-between text-sm font-medium">
                                     <span className="text-[#667085]">Estimated Total</span>
-                                    <span className="text-[#333843]">NGN 249,700</span>
+                                    <span className="text-[#333843]">NGN {(orderDetails.pricing.shipping_fee + orderDetails.pricing.subtotal).toLocaleString('en-us', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
                                 </div>
                          </div>
                     </div>
