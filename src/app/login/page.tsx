@@ -32,10 +32,15 @@ export default function Login() {
             } else {
                 throw new Error(data.message || 'Something went wrong')
             }
-        } catch (error: String | any) {
-            console.error('Error during login:', error)
-            alert(error.message || 'Something went wrong')
-        }
+        } catch (error: unknown) {
+            console.error('Error during login:', error);
+          
+            if (error instanceof Error) {
+              alert(error.message);
+            } else {
+              alert('Something went wrong');
+            }
+          }          
     }
 
     return (

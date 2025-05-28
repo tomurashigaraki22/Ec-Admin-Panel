@@ -1,11 +1,49 @@
+type TimelineItem = {
+    date: string;
+    value: number;
+  };
+  
+type YearlyTimelineItem = {
+month: string;
+value: number;
+};
+
+type MonthlyCustomerStats = {
+    active_users: number;
+    new_signups: number;
+    month: string;
+  };
+  
+type CustomerStatistics = {
+[year: string]: MonthlyCustomerStats[];
+};
+
+type SalesTimeline = {
+    daily: {
+      data: TimelineItem[];
+      total_sales: number;
+    };
+    monthly: {
+      data: TimelineItem[];
+      total_sales: number;
+    };
+    yearly: {
+      data: YearlyTimelineItem[];
+      total_sales: number;
+    };
+    summary: {
+      last_12_months: number;
+      last_24_hours: number;
+      last_30_days: number;
+      last_7_days: number;
+    };
+  };
+
 export interface DashboardData {
     category_breakdown: {
         [key: string]: number;
     };
-    customer_statistics: {
-        active_users: number;
-        new_signups: number;
-    };
+    customer_statistics: CustomerStatistics
     order_status: {
         [key: string]: number;
     };
@@ -19,12 +57,7 @@ export interface DashboardData {
         name: string;
         value: number;
     }[];
-    sales_timeline: {
-        last_12m: number;
-        last_24h: number;
-        last_30d: number;
-        last_7d: number;
-    };
+    sales_timeline: SalesTimeline;
 }
 
 export type PaymentStatus = 'Paid' | 'Pending' | 'Failed' | 'Refunded' | 'Partially Paid';

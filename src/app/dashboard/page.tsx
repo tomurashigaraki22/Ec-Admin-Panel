@@ -11,6 +11,8 @@ import { OrdersTable } from '@/components/ui/orders-table'
 import Cookies from 'js-cookie'
 import { DashboardData, OrderTypes } from '@/app/dashboard/types'
 
+
+
  
 // const salesData = [
 //     { date: '01', value: 800000 },
@@ -171,29 +173,28 @@ export default function Dashboard() {
         fetchOrders()
     }, [])
 
-    const formatTimelineData = (data: any, timeframe: string) => {
-        switch(timeframe) {
+    const formatTimelineData = (data: DashboardData, timeframe: string) => {
+        switch (timeframe) {
           case '24 Hour':
-            return data.sales_timeline.daily.data.map((item: any) => ({
+            return data.sales_timeline.daily.data.map((item) => ({
               date: item.date,
-              value: item.value
+              value: item.value,
             })) || [];
           case '7 Days':
           case '30 Days':
-            return data.sales_timeline.monthly.data.map((item: any) => ({
+            return data.sales_timeline.monthly.data.map((item) => ({
               date: item.date,
-              value: item.value
+              value: item.value,
             })) || [];
           case '12 Months':
-            return data.sales_timeline.yearly.data.map((item: any) => ({
+            return data.sales_timeline.yearly.data.map((item) => ({
               date: `Month ${item.month}`,
-              value: item.value
+              value: item.value,
             })) || [];
           default:
             return [];
         }
-      }
-      
+      };
       const formatSalesTotal = (amount: number) => {
         if (amount >= 1000000) {
           return `₦${(amount / 1000000).toFixed(1)}M`;
@@ -223,14 +224,21 @@ export default function Dashboard() {
         return num.toString()
     }
 
-    const formatCustomerStatistics = (data: any, year: string) => {
-        console.log("Data: ", data.customer_statistics[year], " year: ", year);
-        return data.customer_statistics[year].map((item: any) => ({
-            month: item.month,
-            active: item.active_users,
-            newSignups: item.new_signups
-        })) || [];
-    }
+    const formatCustomerStatistics = (data: DashboardData, year: string) => {
+        const stats = data.customer_statistics?.[year];
+      
+        if (!stats || !Array.isArray(stats)) {
+          console.warn(`No customer statistics found for year ${year}`);
+          return [];
+        }
+      
+        return stats.map((item) => ({
+          month: item.month,
+          active: item.active_users,
+          newSignups: item.new_signups
+        }));
+      };
+      
 
 
 
@@ -307,31 +315,49 @@ export default function Dashboard() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 px-5">
                 <div className="col-span-2 grid">
                 <SalesChartCard
-        data={dashboardData ? formatTimelineData(dashboardData, timeframe) : []}
-        total={dashboardData ? formatSalesTotal(dashboardData.sales_timeline.last_30d) : '₦0'}
-        timeframe={timeframe}
-        onTimeframeChange={(newTimeframe) => {
-          setTimeframe(newTimeframe)
-          // Update total based on timeframe
-          if (dashboardData) {
-            switch(newTimeframe) {
-                case '24 Hour':
-                  setTotal(formatSalesTotal(dashboardData.sales_timeline.last_24h))
-                  break;
-                case '7 Days':
-                  setTotal(formatSalesTotal(dashboardData.sales_timeline.last_7d))
-                  break;
-                case '30 Days':
-                  setTotal(formatSalesTotal(dashboardData.sales_timeline.last_30d))
-                  break;
-                case '12 Months':
-                  setTotal(formatSalesTotal(dashboardData.sales_timeline.last_12m))
-                  break;
-              }
-              
-          }
-        }}
-      />
+                    data={dashboardData ? formatTimelineData(dashboardData, timeframe) : []}
+                    total={
+                        dashboardData
+                        ? formatSalesTotal(
+                            (() => {
+                                switch (timeframe) {
+                                case '24 Hour':
+                                    return dashboardData.sales_timeline.summary.last_24_hours;
+                                case '7 Days':
+                                    return dashboardData.sales_timeline.summary.last_7_days;
+                                case '30 Days':
+                                    return dashboardData.sales_timeline.summary.last_30_days;
+                                case '12 Months':
+                                    return dashboardData.sales_timeline.summary.last_12_months;
+                                default:
+                                    return 0;
+                                }
+                            })()
+                            )
+                        : '₦0'
+                    }
+                    timeframe={timeframe}
+                    onTimeframeChange={(newTimeframe) => {
+                        setTimeframe(newTimeframe);
+                        if (dashboardData) {
+                        switch (newTimeframe) {
+                            case '24 Hour':
+                            setTotal(formatSalesTotal(dashboardData.sales_timeline.summary.last_24_hours));
+                            break;
+                            case '7 Days':
+                            setTotal(formatSalesTotal(dashboardData.sales_timeline.summary.last_7_days));
+                            break;
+                            case '30 Days':
+                            setTotal(formatSalesTotal(dashboardData.sales_timeline.summary.last_30_days));
+                            break;
+                            case '12 Months':
+                            setTotal(formatSalesTotal(dashboardData.sales_timeline.summary.last_12_months));
+                            break;
+                        }
+                        }
+                    }}
+                />
+
                 </div>
 
                 <OrderStatusCard
