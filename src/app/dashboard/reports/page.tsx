@@ -86,7 +86,7 @@ import { DashboardData, OrderTypes } from '@/app/dashboard/types'
 //         status: 'Shipped' as const
 //     }
 // ]
-export default function Dashboard() {
+export default function ReportsPage() {
     const [timeframe, setTimeframe] = useState('30 Days')
     const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
     const [fetchingData, setFetchingData] = useState(true)
@@ -116,8 +116,6 @@ export default function Dashboard() {
                     credentials: 'include', // Include credentials in the request
                 })
 
-                console.log("Response: ", response)
-
                 if (response.status === 500) {
                     throw new Error('Server error. Please try again later.')
                 }
@@ -128,7 +126,6 @@ export default function Dashboard() {
                 }
 
                 const data = await response.json()
-                console.log("Data: ", data)
                 setDashboardData(data)
                 setError('')
             } catch (err) {
