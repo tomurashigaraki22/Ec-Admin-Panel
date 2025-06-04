@@ -3,10 +3,8 @@
 import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { CustomerDetails } from '@/types/customer'
-import Image from 'next/image'
 import { Ubuntu } from 'next/font/google'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
-import { customerDetails } from '@/lib/customer'
+import { X } from 'lucide-react'
 import dynamic from 'next/dynamic'
 import { ApexOptions } from 'apexcharts'
 import { 
@@ -348,6 +346,7 @@ export default function CustomerDetailsPage() {
                               </>
                             )
                           } catch (e) {
+                            console.log("Main: ",e)
                             return <p className="text-gray-800">Invalid product data</p>
                           }
                         })()}

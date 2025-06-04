@@ -43,7 +43,6 @@ interface ImageLibraryProps {
 
 export function ImageLibrary({ onSelect, onClose }: ImageLibraryProps) {
   const [libraryImages, setLibraryImages] = useState<UploadedImage[]>([])
-  const [selectedImages, setSelectedImages] = useState<string[]>([])
 
   useEffect(() => {
     // Simulate fetching images from backend

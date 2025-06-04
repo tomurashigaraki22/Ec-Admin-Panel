@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { Search, Plus, LayoutGrid, List, Filter, MoreVertical, Pencil, Trash2 } from 'lucide-react'
+import { Search, Plus, LayoutGrid, List, Filter, Pencil, Trash2 } from 'lucide-react'
 import { Inter } from 'next/font/google'
 import { Product } from '@/utils/types'
 import { products } from '@/lib/products'
@@ -11,7 +11,6 @@ import { useRouter } from 'next/navigation'
 const inter = Inter({ subsets: ['latin'] })
 
 export default function ProductsPage() {
-  const [selectedProducts, setSelectedProducts] = useState<number[]>([])
   const [view, setView] = useState<'grid' | 'list'>('grid')
   const router = useRouter()
 

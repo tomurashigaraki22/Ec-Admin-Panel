@@ -1,12 +1,27 @@
-import { useState } from 'react'
+import { useState, FormEvent } from 'react'
+import { PromotionData } from '@/types/promotion'
 
 interface AddPromotionModalProps {
   isOpen: boolean
   onClose: () => void
-  onSubmit: (data: any) => void
+  onSubmit: (data: PromotionData) => void
 }
 
 export function AddPromotionModal({ isOpen, onClose, onSubmit }: AddPromotionModalProps) {
+  const [formData, setFormData] = useState<PromotionData>({
+    title: '',
+    discountType: 'shipping',
+    value: '',
+    target: 'all',
+    startDate: '',
+    endDate: ''
+  })
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    onSubmit(formData)
+  }
+
   if (!isOpen) return null
 
   return (
@@ -22,23 +37,30 @@ export function AddPromotionModal({ isOpen, onClose, onSubmit }: AddPromotionMod
           </button>
         </div>
 
-        <form className="space-y-6" onSubmit={(e) => {
-          e.preventDefault()
-          onSubmit({})
-        }}>
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-6">
             <div>
               <label className="block text-sm text-gray-600 mb-1">Promotion Title</label>
               <input 
                 type="text"
                 placeholder="Enter promotion title"
+                value={formData.title}
+                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                required
                 className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
               />
             </div>
             <div>
               <label className="block text-sm text-gray-600 mb-1">Discount Type</label>
-              <select className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]">
-                <option value="">Select type</option>
+              <select 
+                value={formData.discountType}
+                onChange={(e) => setFormData(prev => ({ 
+                  ...prev, 
+                  discountType: e.target.value as PromotionData['discountType']
+                }))}
+                required
+                className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
+              >
                 <option value="shipping">Shipping Discount</option>
                 <option value="percentage">Percentage</option>
                 <option value="fixed">Fixed Amount</option>
@@ -52,13 +74,23 @@ export function AddPromotionModal({ isOpen, onClose, onSubmit }: AddPromotionMod
               <input 
                 type="text"
                 placeholder="Enter discount value"
+                value={formData.value}
+                onChange={(e) => setFormData(prev => ({ ...prev, value: e.target.value }))}
+                required
                 className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
               />
             </div>
             <div>
               <label className="block text-sm text-gray-600 mb-1">Target</label>
-              <select className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]">
-                <option value="">Select target</option>
+              <select 
+                value={formData.target}
+                onChange={(e) => setFormData(prev => ({ 
+                  ...prev, 
+                  target: e.target.value as PromotionData['target']
+                }))}
+                required
+                className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
+              >
                 <option value="all">All Customers</option>
                 <option value="selected">Selected Products</option>
               </select>
@@ -70,6 +102,9 @@ export function AddPromotionModal({ isOpen, onClose, onSubmit }: AddPromotionMod
               <label className="block text-sm text-gray-600 mb-1">Start Date</label>
               <input 
                 type="date"
+                value={formData.startDate}
+                onChange={(e) => setFormData(prev => ({ ...prev, startDate: e.target.value }))}
+                required
                 className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
               />
             </div>
@@ -77,6 +112,9 @@ export function AddPromotionModal({ isOpen, onClose, onSubmit }: AddPromotionMod
               <label className="block text-sm text-gray-600 mb-1">End Date</label>
               <input 
                 type="date"
+                value={formData.endDate}
+                onChange={(e) => setFormData(prev => ({ ...prev, endDate: e.target.value }))}
+                required
                 className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
               />
             </div>

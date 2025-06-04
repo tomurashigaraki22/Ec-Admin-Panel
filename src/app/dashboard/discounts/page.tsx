@@ -47,11 +47,11 @@ export default function DiscountsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
 
-  const handleAddPromotion = (data: any) => {
-    // Handle the new promotion data here
-    console.log('New promotion:', data)
-    setShowAddModal(false)
-  }
+    const handleAddPromotion = (newPromotion: Promotion) => {
+        // Logic to add new promotion
+        console.log('New Promotion:', newPromotion)
+        setShowAddModal(false)
+    }
 
   return (
     <div className={`p-6 ${ubuntu.className} bg-gray-50 min-h-screen`}>

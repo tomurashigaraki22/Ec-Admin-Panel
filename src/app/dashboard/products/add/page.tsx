@@ -2,12 +2,11 @@
 
 import { useState } from 'react'
 import Image from 'next/image'
-import { X, Upload, Image as ImageIcon } from 'lucide-react'
-import { Inter, Ubuntu } from 'next/font/google'
+import { X } from 'lucide-react'  // Remove unused imports
+import { Ubuntu } from 'next/font/google'  // Remove Inter
 import { useRouter } from 'next/navigation'
 import { ImageLibrary } from '@/components/ImageLibrary'
 
-const inter = Inter({ subsets: ['latin'] })
 const ubuntu = Ubuntu({ 
   weight: ['300', '400', '500', '700'],
   subsets: ['latin'] 
@@ -26,7 +25,22 @@ export default function AddProductPage() {
   const [hasVariations, setHasVariations] = useState(false)
   const [uploadedImages, setUploadedImages] = useState<UploadedImage[]>([])
   const [showLibrary, setShowLibrary] = useState(false)
+  const [newTag, setNewTag] = useState('')  // Add state for new tag input
   const router = useRouter()
+
+  // Add handler for tag removal
+  const handleRemoveTag = (tagToRemove: string) => {
+    setTags(currentTags => currentTags.filter(tag => tag !== tagToRemove))
+  }
+
+  // Add handler for tag addition
+  const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && newTag.trim()) {
+      e.preventDefault()
+      setTags(currentTags => [...currentTags, newTag.trim()])
+      setNewTag('')
+    }
+  }
 
   return (
     <div className={`p-6 ${ubuntu.className} max-w-6xl mx-auto text-gray-600`}>
@@ -105,13 +119,20 @@ export default function AddProductPage() {
               <input 
                 type="text"
                 placeholder="Enter tag name"
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyDown={handleAddTag}
                 className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:border-[#4C8EDA] focus:ring-1 focus:ring-[#4C8EDA] text-gray-600"
               />
               <div className="flex flex-wrap gap-2 mt-3">
                 {tags.map(tag => (
                   <span key={tag} className="px-2 py-1 bg-gray-50 text-gray-600 rounded-full text-sm flex items-center gap-1 border border-gray-200">
                     {tag}
-                    <X size={14} className="cursor-pointer text-gray-400 hover:text-gray-600" />
+                    <X 
+                      size={14} 
+                      className="cursor-pointer text-gray-400 hover:text-gray-600"
+                      onClick={() => handleRemoveTag(tag)}
+                    />
                   </span>
                 ))}
               </div>

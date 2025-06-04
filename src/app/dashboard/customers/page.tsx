@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import { Search, Filter, Pencil } from 'lucide-react'
 import { Ubuntu } from 'next/font/google'
 import { useRouter } from 'next/navigation'
@@ -19,7 +18,6 @@ export default function CustomerManagementPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [selectedStatus, setSelectedStatus] = useState<string>('all')
-  const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
   const router = useRouter()
 
