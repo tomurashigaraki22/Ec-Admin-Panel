@@ -10,9 +10,9 @@ interface AddPromotionModalProps {
 export function AddPromotionModal({ isOpen, onClose, onSubmit }: AddPromotionModalProps) {
   const [formData, setFormData] = useState<PromotionData>({
     title: '',
-    discountType: 'shipping',
+    discountType: 'Shipping Discount',
     value: '',
-    target: 'all',
+    target: 'All Customers',
     startDate: '',
     endDate: ''
   })
@@ -61,9 +61,9 @@ export function AddPromotionModal({ isOpen, onClose, onSubmit }: AddPromotionMod
                 required
                 className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
               >
-                <option value="shipping">Shipping Discount</option>
-                <option value="percentage">Percentage</option>
-                <option value="fixed">Fixed Amount</option>
+                <option value="Shipping Discount">Shipping Discount</option>
+                <option value="Percentage">Percentage</option>
+                <option value="Fixed Amount">Fixed Amount</option>
               </select>
             </div>
           </div>
@@ -91,8 +91,8 @@ export function AddPromotionModal({ isOpen, onClose, onSubmit }: AddPromotionMod
                 required
                 className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
               >
-                <option value="all">All Customers</option>
-                <option value="selected">Selected Products</option>
+                <option value="All Customers">All Customers</option>
+                <option value="Selected Products">Selected Products</option>
               </select>
             </div>
           </div>

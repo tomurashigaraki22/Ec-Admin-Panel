@@ -4,21 +4,12 @@ import { useState } from 'react'
 import { Ubuntu } from 'next/font/google'
 import { Search, Plus, Filter, Edit2 } from 'lucide-react'
 import { AddPromotionModal } from '@/components/ui/add-promotion-modal'
+import { Promotion, PromotionData } from '@/types/promotion'
 
 const ubuntu = Ubuntu({ 
   weight: ['300', '400', '500', '700'],
   subsets: ['latin'] 
 })
-
-interface Promotion {
-  title: string
-  discountType: 'Shipping Discount' | 'Percentage' | 'Fixed Amount'
-  value: string
-  duration: string
-  status: 'Active' | 'Expired'
-  usage: number
-  target: string
-}
 
 const promotions: Promotion[] = [
   {
@@ -47,11 +38,21 @@ export default function DiscountsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
 
-    const handleAddPromotion = (newPromotion: Promotion) => {
-        // Logic to add new promotion
-        console.log('New Promotion:', newPromotion)
-        setShowAddModal(false)
+  const handleAddPromotion = (data: PromotionData) => {
+    const newPromotion: Promotion = {
+      title: data.title,
+      discountType: data.discountType,
+      value: data.value,
+      target: data.target,
+      duration: `${new Date(data.startDate).toLocaleDateString()} - ${new Date(data.endDate).toLocaleDateString()}`,
+      status: 'Active', // Default to active
+      usage: 0 // Start with 0 usage
     }
+
+    // Add to promotions list or make API call
+    console.log('New Promotion:', newPromotion)
+    setShowAddModal(false)
+  }
 
   return (
     <div className={`p-6 ${ubuntu.className} bg-gray-50 min-h-screen`}>

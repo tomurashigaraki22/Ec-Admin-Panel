@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { CustomerDetails } from '@/types/customer'
 import { Ubuntu } from 'next/font/google'
@@ -24,7 +24,7 @@ const ubuntu = Ubuntu({
   subsets: ['latin'] 
 })
 
-export default function CustomerDetailsPage() {
+function CustomerDetailsContent() {
   const [customerDetails, setCustomerDetails] = useState<CustomerDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -250,7 +250,7 @@ export default function CustomerDetailsPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Date Created</p>
-                  <p className="font-medium">{customerDetails.user_info.dateCreated}</p>
+                  <p className="font-medium">{customerDetails.user_info.date_created}</p>
                 </div>
               </div>
 
@@ -260,7 +260,7 @@ export default function CustomerDetailsPage() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Last Login</p>
-                  <p className="font-medium">{customerDetails.user_info.lastLogin}</p>
+                  <p className="font-medium">{customerDetails.user_info.last_login}</p>
                 </div>
               </div>
             </div>
@@ -303,13 +303,13 @@ export default function CustomerDetailsPage() {
                   </div>
                   <p className="text-xl font-medium mt-1">{stats.cancelled}</p>
                 </div>
-                <div>
+                {/* <div>
                   <div className="flex items-center gap-2">
                     <span className="w-2 h-2 rounded-full bg-[#FF0000]"></span>
                     <span className="text-gray-600">Placed</span>
                   </div>
                   <p className="text-xl font-medium mt-1">{stats.placed}</p>
-                </div>
+                </div> */}
               </div>
             </div>
           </div>
@@ -464,5 +464,21 @@ export default function CustomerDetailsPage() {
         </div>
       )}
     </div>
+  )
+}
+
+export default function CustomerDetailsPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-6 text-center">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="h-32 w-32 bg-gray-200 rounded-full"></div>
+          <div className="h-6 w-48 bg-gray-200 rounded"></div>
+          <div className="h-4 w-24 bg-gray-200 rounded"></div>
+        </div>
+      </div>
+    }>
+      <CustomerDetailsContent />
+    </Suspense>
   )
 }

@@ -3,7 +3,7 @@ import { useState } from 'react'
 
 type OrderStatus = 'Processing' | 'Placed' | 'Shipped' | 'Delivered' | 'Cancelled'
 
-type Order = {
+export type Order = {
     id: string
     product: {
         name: string
