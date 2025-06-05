@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, FormEvent } from 'react'
+import { useState, FormEvent, useRef } from 'react'
 import { Ubuntu } from 'next/font/google'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
@@ -21,6 +21,8 @@ export default function AddCategoryPage() {
     slug: '',
     description: ''
   })
+  const fileInputRef = useRef<HTMLInputElement>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(null)
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -53,6 +55,40 @@ export default function AddCategoryPage() {
     }
   }
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.readAsDataURL(file)
+      reader.onload = () => resolve(reader.result as string)
+      reader.onerror = (error) => reject(error)
+    })
+  }
+
+  const handleImageUpload = async (file: File) => {
+    setLoading(true)
+    try {
+      const base64String = await fileToBase64(file)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/upload`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          image: base64String,
+          filename: file.name,
+        }),
+      })
+      if (!response.ok) throw new Error('Failed to upload image')
+      const data = await response.json()
+      setFormData(prev => ({ ...prev, image_url: data.url }))
+      setImagePreview(data.url)
+      toast.success('Image uploaded successfully')
+    } catch (error) {
+      console.log("Error: ", error)
+      toast.error('Failed to upload image')
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className={`p-6 ${ubuntu.className} max-w-6xl mx-auto text-gray-600`}>
       <form onSubmit={handleSubmit}>
@@ -61,9 +97,9 @@ export default function AddCategoryPage() {
           <div>
             <h1 className="text-xl font-medium text-gray-700">Product Management</h1>
             <div className="flex items-center gap-2 text-sm mt-1">
-              <span className="text-gray-600">Dashboard</span>
+              <span className="text-gray-600" onClick={() => router.push('/dashboard')}>Dashboard</span>
               <span className="text-gray-400">/</span>
-              <span className="text-gray-600">Product List</span>
+              <span className="text-gray-600" onClick={() => router.push('/dashboard/products')}>Product List</span>
               <span className="text-gray-400">/</span>
               <span className="text-gray-400">Add Category</span>
             </div>
@@ -120,16 +156,19 @@ export default function AddCategoryPage() {
               </div>
 
               <div>
-                <label className="block text-sm mb-1.5 text-gray-600">Image URL</label>
-                <input 
-                  type="url"
-                  placeholder="Enter Category Image URL"
-                  value={formData.image_url}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    image_url: e.target.value
-                  }))}
-                  required
+                <label className="block text-sm mb-1.5 text-gray-600">Category Image</label>
+                {imagePreview && (
+                  <img src={imagePreview} alt="Preview" className="mb-2 w-32 h-32 object-cover rounded" />
+                )}
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  onChange={async (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      await handleImageUpload(e.target.files[0])
+                    }
+                  }}
                   className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:border-[#4C8EDA] focus:ring-1 focus:ring-[#4C8EDA] text-gray-600"
                 />
               </div>
