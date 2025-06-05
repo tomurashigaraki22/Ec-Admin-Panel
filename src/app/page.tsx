@@ -1,68 +1,116 @@
-import Image from "next/image"
-import Link from "next/link"
-import { Ubuntu } from 'next/font/google'
+'use client'
 
-const ubuntu = Ubuntu({ 
-  weight: ['300', '400', '500', '700'],
-  subsets: ['latin'] 
-})
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import Cookies from 'js-cookie'
+import { Lock, Mail } from 'lucide-react'
 
-export default function Home() {
-  return (
-    <div className={`min-h-screen bg-gradient-to-br from-[#4C8EDA]/5 to-[#4C8EDA]/10 flex flex-col items-center justify-center p-4 ${ubuntu.className}`}>
-      <div className="w-full max-w-lg text-center space-y-8">
-        {/* Logo and Title */}
-        <div className="space-y-4">
-          <div className="min-w-16 min-h-16 bg-[#4C8EDA] rounded-xl flex items-center justify-center mx-auto shadow-lg shadow-blue-200">
-          <Image
-            src="https://steadfast.ng/_next/image?url=%2Flogo.png&w=384&q=75"
-            alt="Admin Panel Logo"
-            width={182}
-            height={96}
-            priority
-            className="text-white"
-          />
-          </div>
-          <div>
-            <h1 className="text-2xl font-medium text-gray-800">Admin Panel</h1>
-            <p className="text-gray-500 mt-2">
-              Welcome to your dashboard. Please sign in to continue.
-            </p>
-          </div>
+export default function Login() {
+    const [email, setEmail] = useState('')
+    const [password, setPassword] = useState('')
+    const router = useRouter()
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        try{
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/login`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            })
+            const data = await response.json()
+            console.log("data: ", data)
+            if (!response.ok) {
+                throw new Error(data.message || 'Something went wrong')
+            }
+
+            if (data.status === 'success') {
+                Cookies.set('token', data.data.token, { expires: 7 })
+                router.push('/dashboard')
+            } else {
+                throw new Error(data.message || 'Something went wrong')
+            }
+        } catch (error: unknown) {
+            console.error('Error during login:', error);
+          
+            if (error instanceof Error) {
+              alert(error.message);
+            } else {
+              alert('Something went wrong');
+            }
+          }          
+    }
+
+    return (
+        <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
+            <div className="bg-[#4C8EDA] hidden  p-8 text-white md:flex items-center justify-center">
+                <div className="max-w-xl text-center md:text-left">
+                    <h2 className="text-3xl md:text-4xl font-bold mb-4">Welcome to Steadfast Admin</h2>
+                    <p className="text-white/80 text-lg">
+                        Streamline and oversee all platform activities on Steadfast.
+                    </p>
+                </div>
+            </div>
+
+            <div className="bg-white p-8 sm:p-12 md:px-[5rem] flex items-center">
+                <div className="w-full max-w-md mx-auto">
+                    <div className="w-12 h-12 bg-[#4C8EDA] rounded-xl flex items-center justify-center mb-8">
+                        <span className="text-white font-bold text-2xl">S</span>
+                    </div>
+
+                    <h1 className="text-2xl font-semibold text-gray-900 mb-2">Admin Panel Login</h1>
+                    <p className="text-gray-600 mb-8">Welcome back, Please enter your credentials to continue.</p>
+
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="email">
+                                Email address
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Mail className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <input
+                                    type="email"
+                                    id="email"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4C8EDA] focus:border-transparent"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-2" htmlFor="password">
+                                Password
+                            </label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <Lock className="h-5 w-5 text-gray-400" />
+                                </div>
+                                <input
+                                    type="password"
+                                    id="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    className="block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#4C8EDA] focus:border-transparent"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <button
+                            type="submit"
+                            className="w-full bg-[#4C8EDA] text-white py-2.5 rounded-lg hover:bg-[#4C8EDA]/90 transition-colors font-medium"
+                        >
+                            Sign in
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
-
-        {/* Login Button */}
-        <Link 
-          href="/login" 
-          className="inline-flex items-center px-6 py-3 text-sm font-medium text-white bg-[#4C8EDA] rounded-lg hover:bg-[#4577b6] transition-colors duration-200 shadow-md shadow-blue-100"
-        >
-          Sign In to Dashboard
-        </Link>
-
-        {/* Footer Links */}
-        <div className="pt-8 text-sm text-gray-500 space-x-4">
-          <a 
-            href="#" 
-            className="hover:text-[#4C8EDA] transition-colors duration-200"
-          >
-            Privacy Policy
-          </a>
-          <span>•</span>
-          <a 
-            href="#" 
-            className="hover:text-[#4C8EDA] transition-colors duration-200"
-          >
-            Terms of Service
-          </a>
-          <span>•</span>
-          <a 
-            href="#" 
-            className="hover:text-[#4C8EDA] transition-colors duration-200"
-          >
-            Contact Support
-          </a>
-        </div>
-      </div>
-    </div>
-  )
+    )
 }
