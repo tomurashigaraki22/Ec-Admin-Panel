@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Ubuntu } from 'next/font/google'
-import { Search, Plus, Filter, Edit2 } from 'lucide-react'
+import { Search, Plus, Edit2 } from 'lucide-react'
 import { AddPromotionModal } from '@/components/ui/add-promotion-modal'
 import { Coupon, CreateCouponData } from '@/types/promotion'
 import Cookies from 'js-cookie'

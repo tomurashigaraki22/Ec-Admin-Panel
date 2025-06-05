@@ -6,7 +6,7 @@ import { X } from 'lucide-react'  // Remove unused imports
 import { Ubuntu } from 'next/font/google'  // Remove Inter
 import { useRouter } from 'next/navigation'
 import { ImageLibrary } from '@/components/ImageLibrary'
-import { CreateProductData, ProductVariation, UploadResponse } from '@/types/product'
+import { CreateProductData, ProductVariation } from '@/types/product'
 import { Category } from '@/types/category'
 import toast from 'react-hot-toast'
 

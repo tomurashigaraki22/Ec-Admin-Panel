@@ -2,9 +2,8 @@
 
 import { useState, useEffect, FormEvent } from 'react'
 import { Ubuntu } from 'next/font/google'
-import { Search, Plus, MoreHorizontal, Edit2, Trash, Check } from 'lucide-react'
+import { Search, Plus, Edit2, Trash, Check } from 'lucide-react'
 import { roles, availableRoles, modulesList } from '@/app/dashboard/types'
-import Image from 'next/image'
 import { AdminUser, AdminUsersResponse, Role, CreateAdminResponse } from '@/types/admin'
 import { toast } from 'react-hot-toast'
 import { AdminDeleteModal } from '@/components/AdminDeleteModal'

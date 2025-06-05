@@ -63,6 +63,7 @@ export default function Sidebar() {
         })
       } catch (e) {
         // handle error or fallback
+        console.log("E: ", e)
         setUser({})
       }
     }

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { Search, Plus, LayoutGrid, List, Filter, Pencil, Trash2 } from 'lucide-react'
+import { Search, Plus, LayoutGrid, List, Pencil, Trash2 } from 'lucide-react'
 import { Inter } from 'next/font/google'
 import { Product as ProductType } from '@/types/product'
 import { useRouter } from 'next/navigation'
