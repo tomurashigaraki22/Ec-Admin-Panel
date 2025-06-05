@@ -1,21 +1,36 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, FormEvent } from 'react'
 import { Ubuntu } from 'next/font/google'
 import { Search, Plus, MoreHorizontal, Edit2, Trash, Check } from 'lucide-react'
-import { roles, administrators, availableRoles, modulesList } from '../types'
+import { roles, availableRoles, modulesList } from '@/app/dashboard/types'
 import Image from 'next/image'
+import { AdminUser, AdminUsersResponse, Role, CreateAdminResponse } from '@/types/admin'
+import { toast } from 'react-hot-toast'
+import { AdminDeleteModal } from '@/components/AdminDeleteModal'
 
 const ubuntu = Ubuntu({ 
   weight: ['300', '400', '500', '700'],
   subsets: ['latin'] 
 })
 
+type TabType = 'admin' | 'roles' | 'access'
+
+
 export default function RolesPage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [activeTab, setActiveTab] = useState<'admin' | 'roles' | 'access'>('admin')
+  const [activeTab, setActiveTab] = useState<TabType>('admin')
   const [localRoles, setLocalRoles] = useState<typeof roles>([])
+  const [adminUsers, setAdminUsers] = useState<AdminUser[]>([])
+  const [formData, setFormData] = useState({
+    email: '',
+    role_id: ''
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [selectedAdmin, setSelectedAdmin] = useState<AdminUser | null>(null)
 
   useEffect(() => {
     const savedRoles = localStorage.getItem('roles')
@@ -26,6 +41,75 @@ export default function RolesPage() {
       localStorage.setItem('roles', JSON.stringify(roles))
     }
   }, [])
+
+  const fetchAdminUsers = async () => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/get-all-admins`)
+      if (!response.ok) {
+        throw new Error('Failed to fetch administrators')
+      }
+
+      const data: AdminUsersResponse = await response.json()
+      
+      if (data.status === 'error') {
+        throw new Error(data.message)
+      }
+
+      setAdminUsers(data.data || [])
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to fetch administrators')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddAdmin = async (e: FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/admin/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const data: CreateAdminResponse = await response.json()
+
+      if (data.status === 'error') {
+        throw new Error(data.message)
+      }
+
+      toast.success(data.message)
+      setShowAddModal(false)
+      fetchAdminUsers() // Refresh the list
+
+      // Show temporary password in a more prominent way
+      if (data.data?.temporary_password) {
+        toast.success(
+          <div>
+            <p>Temporary password:</p>
+            <p className="font-mono bg-gray-100 p-2 mt-2 rounded">
+              {data.data.temporary_password}
+            </p>
+          </div>,
+          { duration: 10000 }
+        )
+      }
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : 'Failed to create administrator')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  useEffect(() => {
+    if (activeTab === 'admin') {
+      fetchAdminUsers()
+    }
+  }, [activeTab])
 
   const handlePermissionToggle = (
     roleId: number,
@@ -57,55 +141,134 @@ export default function RolesPage() {
     localStorage.setItem('roles', JSON.stringify(roles))
   }
 
+  const renderAdminModal = () => (
+    <form className="space-y-4" onSubmit={handleAddAdmin}>
+      <div>
+        <label className="block text-sm text-gray-600 mb-1">Email</label>
+        <input 
+          type="email"
+          value={formData.email}
+          onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+          required
+          className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
+        />
+      </div>
+      <div>
+        <label className="block text-sm text-gray-600 mb-1">Role</label>
+        <select 
+          value={formData.role_id}
+          onChange={(e) => setFormData(prev => ({ ...prev, role_id: e.target.value }))}
+          required
+          className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
+        >
+          <option value="">Select a role</option>
+          {availableRoles.map((role: Role) => (
+            <option key={role.id} value={role.id}>{role.title}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="flex justify-end gap-2 mt-6">
+        <button 
+          type="button"
+          onClick={() => setShowAddModal(false)}
+          className="px-4 py-2 border border-gray-200 rounded-lg text-sm"
+        >
+          Cancel
+        </button>
+        <button 
+          type="submit"
+          disabled={isSubmitting}
+          className="px-4 py-2 bg-[#4C8EDA] text-white rounded-lg text-sm hover:bg-[#4577b6] disabled:opacity-50"
+        >
+          {isSubmitting ? 'Creating...' : 'Add Admin'}
+        </button>
+      </div>
+    </form>
+  )
+
+  const renderAdminContent = () => (
+    <>
+      <div className="p-6 border-b border-gray-200 flex items-center justify-between">
+        <h2 className="font-medium">Administrators</h2>
+        <div className="relative w-[300px]">
+          <input
+            type="text"
+            placeholder="Search administrators"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full p-2 pl-9 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
+          />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="border border-gray-200 rounded-lg p-4 animate-pulse">
+                <div className="flex items-start gap-3">
+                  <div className="w-10 h-10 bg-gray-200 rounded-full" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-3/4" />
+                    <div className="h-3 bg-gray-200 rounded w-1/2" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+          {adminUsers
+            .filter(admin => 
+              admin.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+              admin.role_name.toLowerCase().includes(searchQuery.toLowerCase())
+            )
+            .map((admin) => (
+              <div key={admin.id} className="border border-gray-200 rounded-lg p-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
+                      <span className="text-gray-600">{admin.email[0].toUpperCase()}</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-800">
+                        {admin.email.length > 15
+                          ? admin.email.slice(0, 15) + '...'
+                          : admin.email}
+                      </p>
+                      <p className="text-sm text-gray-500">{admin.role_name}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button 
+                      onClick={() => {
+                        setSelectedAdmin(admin)
+                        setShowDeleteModal(true)
+                      }}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <Trash size={16} className="text-gray-500" />
+                    </button>
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-gray-100 text-sm text-gray-500">
+                  <p>Last login: {new Date(admin.updated_at).toLocaleDateString()}</p>
+                  <p>Date added: {new Date(admin.created_at).toLocaleDateString()}</p>
+                </div>
+              </div>
+            ))}
+        </div>
+      )}
+    </>
+  )
+
   const renderContent = () => {
     switch (activeTab) {
       case 'admin':
-        return (
-          <>
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <h2 className="font-medium">Administrators</h2>
-              <div className="relative w-[300px]">
-                <input
-                  type="text"
-                  placeholder="Search administrators"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full p-2 pl-9 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
-                />
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
-              {administrators.map((admin) => (
-                <div key={admin.id} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-3">
-                      <Image
-                        src={admin.avatar}
-                        alt={admin.name}
-                        width={40}
-                        height={40}
-                        className="rounded-full"
-                      />
-                      <div>
-                        <p className="font-medium text-gray-800">{admin.name}</p>
-                        <p className="text-sm text-gray-500">{admin.email}</p>
-                        <p className="text-sm text-gray-500 mt-1">{admin.role}</p>
-                      </div>
-                    </div>
-                    <button className="text-gray-400 hover:text-gray-600">
-                      <MoreHorizontal size={20} />
-                    </button>
-                  </div>
-                  <div className="mt-4 pt-4 border-t border-gray-100 text-sm text-gray-500">
-                    <p>Last login: {admin.lastLogin}</p>
-                    <p>Date added: {admin.dateAdded}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )
+        return renderAdminContent()
       case 'roles':
         return (
           <>
@@ -319,39 +482,18 @@ export default function RolesPage() {
               </button>
             </div>
             
-            <form className="space-y-4">
-              <div>
-                <label className="block text-sm text-gray-600 mb-1">
-                  {activeTab === 'admin' ? 'Name' : 'Department'}
-                </label>
-                <input 
-                  type="text"
-                  className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
-                />
-              </div>
+            {activeTab === 'admin' ? renderAdminModal() : (
+              <form className="space-y-4">
+                <div>
+                  <label className="block text-sm text-gray-600 mb-1">
+                    Department
+                  </label>
+                  <input 
+                    type="text"
+                    className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
+                  />
+                </div>
 
-              {activeTab === 'admin' ? (
-                <>
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-1">Email</label>
-                    <input 
-                      type="email"
-                      className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm text-gray-600 mb-1">Role</label>
-                    <select 
-                      className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
-                    >
-                      <option value="">Select a role</option>
-                      {availableRoles.map((role) => (
-                        <option key={role} value={role}>{role}</option>
-                      ))}
-                    </select>
-                  </div>
-                </>
-              ) : (
                 <div>
                   <label className="block text-sm text-gray-600 mb-1">Role Title</label>
                   <input 
@@ -359,9 +501,8 @@ export default function RolesPage() {
                     className="w-full p-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-1 focus:ring-[#4C8EDA]"
                   />
                 </div>
-              )}
 
-              {activeTab === 'roles' && (
+                {/* Module Permissions section */}
                 <div className="space-y-4 pt-4 border-t border-gray-200">
                   <h4 className="font-medium">Module Permissions</h4>
                   {modulesList.map((module) => (
@@ -384,27 +525,34 @@ export default function RolesPage() {
                     </div>
                   ))}
                 </div>
-              )}
 
-              <div className="flex justify-end gap-2 mt-6">
-                <button 
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-4 py-2 border border-gray-200 rounded-lg text-sm"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  className="px-4 py-2 bg-[#4C8EDA] text-white rounded-lg text-sm hover:bg-[#4577b6]"
-                >
-                  {activeTab === 'admin' ? 'Add Admin' : 'Add Role'}
-                </button>
-              </div>
-            </form>
+                <div className="flex justify-end gap-2 mt-6">
+                  <button 
+                    type="button"
+                    onClick={() => setShowAddModal(false)}
+                    className="px-4 py-2 border border-gray-200 rounded-lg text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    className="px-4 py-2 bg-[#4C8EDA] text-white rounded-lg text-sm hover:bg-[#4577b6]"
+                  >
+                    Add Role
+                  </button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}
+
+      <AdminDeleteModal
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
+        admin={selectedAdmin}
+        onDeleted={fetchAdminUsers}
+      />
     </div>
   )
 }

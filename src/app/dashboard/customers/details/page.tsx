@@ -58,6 +58,7 @@ function CustomerDetailsContent() {
       }
 
       const data = await response.json()
+      console.log("Data: ", data)
       setCustomerDetails(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred')
@@ -140,6 +141,7 @@ function CustomerDetailsContent() {
           })
         }
       )
+      console.log("Response: ", response)
 
       if (!response.ok) {
         const error = await response.json()
@@ -250,7 +252,7 @@ function CustomerDetailsContent() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Date Created</p>
-                  <p className="font-medium">{customerDetails.user_info.date_created}</p>
+                  <p className="font-medium">{customerDetails?.user_info?.date_created.split("T")[0]}</p>
                 </div>
               </div>
 
@@ -260,7 +262,7 @@ function CustomerDetailsContent() {
                 </div>
                 <div>
                   <p className="text-sm text-gray-500">Last Login</p>
-                  <p className="font-medium">{customerDetails.user_info.last_login}</p>
+                  <p className="font-medium">{customerDetails?.user_info?.last_login?.split("T")[0]}</p>
                 </div>
               </div>
             </div>
@@ -373,7 +375,7 @@ function CustomerDetailsContent() {
                         order.payment_status === 'pending' ? 'bg-yellow-100 text-yellow-600' :
                         'bg-red-100 text-red-600'
                       }`}>
-                        {order.payment_status.charAt(0).toUpperCase() + order.payment_status.slice(1)}
+                        {order?.payment_status?.charAt(0).toUpperCase() + order.payment_status.slice(1)}
                       </span>
                     </td>
                   </tr>
@@ -427,10 +429,9 @@ function CustomerDetailsContent() {
                   className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:border-[#4C8EDA] focus:ring-1 focus:ring-[#4C8EDA]"
                 >
                   <option value="">Select a new status</option>
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                  <option value="Suspend">Suspend</option>
-                  <option value="Deactivate">Deactivate</option>
+                  <option value="active">Active</option>
+                  <option value="deactivated">Inactive</option>
+                  <option value="suspended">Suspend</option>
                 </select>
               </div>
 

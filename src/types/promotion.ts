@@ -20,3 +20,22 @@ export interface Promotion {
   status: Status
   usage: number
 }
+
+export interface Coupon {
+  id: number
+  code: string
+  type: 'percentage' | 'fixed'
+  value: number
+  minAmount: number | null
+  description: string
+  is_available: boolean
+}
+
+export interface CreateCouponData {
+  code: string
+  type: 'percentage' | 'fixed'
+  value: number
+  minAmount?: number
+  description: string
+  is_available?: boolean
+}

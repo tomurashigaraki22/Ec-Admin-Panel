@@ -19,9 +19,21 @@ const nextConfig: NextConfig = {
       {
         protocol: 'https',
         hostname:  'www.shutterstock.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'res.cloudinary.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+      {
+        protocol: 'http',
+        hostname: '**',
       }
     ],
-    domains: ['steadfast.ng', 'api.dicebear.com']
+    domains: ['steadfast.ng', 'api.dicebear.com', 'res.cloudinary.com']
   },
 };
 

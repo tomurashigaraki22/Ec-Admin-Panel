@@ -1,3 +1,5 @@
+import { Role } from '@/types/admin'
+
 type TimelineItem = {
     date: string;
     value: number;
@@ -109,33 +111,6 @@ export const administrators: Admin[] = [
   // Add more dummy data...
 ]
 
-export interface Role {
-  id: number
-  title: string
-  department: string
-  assignedUsers: number
-  modules: {
-    name: string
-    permissions: {
-      read: boolean
-      fullAccess: boolean
-      update: boolean
-      add: boolean
-      delete?: boolean
-    }
-  }[]
-}
-
-export const availableRoles = [
-  'Order Manager',
-  'Super Admin',
-  'Product Manager', 
-  'Inventory Manager',
-  'Sales Manager',
-  'CEO',
-  'Customer Success Manager'
-]
-
 export const modulesList = [
   'Order Management',
   'Customer Management',
@@ -149,7 +124,7 @@ export const modulesList = [
   'Banner Management',
   'Audit Logs',
   'Settings'
-]
+] as const
 
 export const roles: Role[] = [
   {
@@ -202,3 +177,12 @@ export const roles: Role[] = [
   },
   // ... continue with other roles
 ]
+
+export const availableRoles: Role[] = roles.map(role => ({
+  id: role.id,
+  title: role.title,
+  department: role.department,
+  assignedUsers: role.assignedUsers,
+  modules: role.modules
+}))
+

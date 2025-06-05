@@ -20,6 +20,8 @@ import {
   Image as ImageIcon
 } from 'lucide-react'
 import Cookies from 'js-cookie'
+import { useEffect, useState } from 'react'
+import jwt_decode from 'jwt-decode'
 
 const menuItems = [
   { icon: LayoutDashboard, label: 'Overview', href: '/dashboard' },
@@ -37,9 +39,34 @@ const menuItems = [
   { icon: FileText, label: 'Audit Logs', href: '/dashboard/audit' },
 ]
 
+interface DecodedToken {
+  user_id?: string
+  username?: string
+  email?: string
+  // add other fields as needed
+}
+
 export default function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
+  const [user, setUser] = useState<{ username?: string; email?: string }>({})
+
+  useEffect(() => {
+    const token = Cookies.get('token')
+    if (token) {
+      try {
+        const decoded: DecodedToken = jwt_decode(token)
+        console.log("Decoded: ", decoded)
+        setUser({
+          username: decoded.username,
+          email: decoded.email,
+        })
+      } catch (e) {
+        // handle error or fallback
+        setUser({})
+      }
+    }
+  }, [])
 
   return (
     <aside className="w-[280px] bg-[#4C8EDA] min-h-screen p-4 flex flex-col">
@@ -76,11 +103,23 @@ export default function Sidebar() {
       <div className="mt-auto pt-4 ">
         <div className="flex items-center gap-3 px-3 py-2 mb-4">
           <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center overflow-hidden">
-            <span className="text-sm font-medium">JJ</span>
+            <span className="text-sm font-medium">
+              {user.username
+                ? user.username
+                    .split(' ')
+                    .map((n) => n[0])
+                    .join('')
+                    .toUpperCase()
+                : 'U'}
+            </span>
           </div>
           <div>
-            <p className="text-sm font-medium text-white">Jessica Jackson</p>
-            <p className="text-xs text-white/60">Super Admin</p>
+            <p className="text-sm font-medium text-white">
+              {user.username || 'Unknown User'}
+            </p>
+            <p className="text-xs text-white/60">
+              {user.email || 'No email'}
+            </p>
           </div>
         </div>
 
