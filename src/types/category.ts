@@ -4,7 +4,8 @@ export interface Category {
   image_url: string
   slug: string
   description: string
-  topProducts?: {
+  subcategories: string[]
+  topProducts: {
     id: string
     name: string
     price: number
@@ -20,6 +21,7 @@ export interface CreateCategoryData {
   image_url: string
   slug: string
   description: string
+  sub_categories?: string[]
 }
 
 export interface Product {

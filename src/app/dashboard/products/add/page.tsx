@@ -51,6 +51,7 @@ export default function AddProductPage() {
     value: '',
     price: ''
   })
+  const [availableSubCategories, setAvailableSubCategories] = useState<string[]>([]) // Add this state to track selected category's subcategories
   const router = useRouter()
 
   // Add useEffect to fetch categories
@@ -190,6 +191,13 @@ const handleImageUpload = async (file: File): Promise<string> => {
     }
   }
 
+  // Update the category select handler
+  const handleCategoryChange = (categoryId: string) => {
+    setFormData(prev => ({ ...prev, category: categoryId, subCategory: '' }))
+    const selectedCategory = categories.find(cat => cat.id === categoryId)
+    setAvailableSubCategories(selectedCategory?.subcategories || [])
+  }
+
   return (
     <form onSubmit={handleSubmit}>
       <div className={`p-6 ${ubuntu.className} max-w-6xl mx-auto text-gray-600`}>
@@ -234,7 +242,7 @@ const handleImageUpload = async (file: File): Promise<string> => {
                 <label className="block text-sm mb-1.5 text-gray-600">Category</label>
                 <select 
                   value={formData.category}
-                  onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                  onChange={(e) => handleCategoryChange(e.target.value)}
                   className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:border-[#4C8EDA] focus:ring-1 focus:ring-[#4C8EDA] text-gray-600"
                   required
                   disabled={loading}
@@ -253,7 +261,7 @@ const handleImageUpload = async (file: File): Promise<string> => {
 
               <div>
                 <label className="block text-sm mb-1.5 text-gray-600">
-                  Sub-Category (Optional)
+                  Sub-Category {availableSubCategories.length > 0 ? '' : '(Optional)'}
                 </label>
                 <select 
                   value={formData.subCategory}
@@ -261,8 +269,17 @@ const handleImageUpload = async (file: File): Promise<string> => {
                   className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:border-[#4C8EDA] focus:ring-1 focus:ring-[#4C8EDA] text-gray-600"
                 >
                   <option value="">Select Sub-Category</option>
-                  {/* Add your sub-categories here */}
+                  {availableSubCategories.map((subCat, index) => (
+                    <option key={index} value={subCat}>
+                      {subCat}
+                    </option>
+                  ))}
                 </select>
+                {formData.category && availableSubCategories.length === 0 && (
+                  <p className="mt-1 text-sm text-gray-500">
+                    No sub-categories available for this category
+                  </p>
+                )}
               </div>
 
               <div>

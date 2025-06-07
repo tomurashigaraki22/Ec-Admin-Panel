@@ -23,6 +23,8 @@ export default function AddCategoryPage() {
   })
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [subCategories, setSubCategories] = useState<string[]>([])
+  const [newSubCategory, setNewSubCategory] = useState('')
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault()
@@ -37,7 +39,8 @@ export default function AddCategoryPage() {
         body: JSON.stringify({
           ...formData,
           // Generate slug from name if not provided
-          slug: formData.slug || formData.name.toLowerCase().replace(/ /g, '-')
+          slug: formData.slug || formData.name.toLowerCase().replace(/ /g, '-'),
+          subcategories: hasSubCategory ? subCategories : undefined
         }),
       })
 
@@ -87,6 +90,18 @@ export default function AddCategoryPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleAddSubCategory = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && newSubCategory.trim()) {
+      e.preventDefault()
+      setSubCategories(prev => [...prev, newSubCategory.trim()])
+      setNewSubCategory('')
+    }
+  }
+
+  const handleRemoveSubCategory = (index: number) => {
+    setSubCategories(prev => prev.filter((_, i) => i !== index))
   }
 
   return (
@@ -201,6 +216,42 @@ export default function AddCategoryPage() {
                   className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:border-[#4C8EDA] focus:ring-1 focus:ring-[#4C8EDA] text-gray-600 resize-none"
                 />
               </div>
+
+              {hasSubCategory && (
+                <div>
+                  <label className="block text-sm mb-1.5 text-gray-600">Sub-Categories</label>
+                  <div className="space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {subCategories.map((subCat, index) => (
+                        <div 
+                          key={index}
+                          className="bg-gray-100 px-3 py-1.5 rounded-full flex items-center gap-2"
+                        >
+                          <span className="text-sm text-gray-600">{subCat}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveSubCategory(index)}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <input 
+                      type="text"
+                      placeholder="Type sub-category and press Enter"
+                      value={newSubCategory}
+                      onChange={(e) => setNewSubCategory(e.target.value)}
+                      onKeyDown={handleAddSubCategory}
+                      className="w-full p-2.5 border border-gray-200 rounded-lg text-sm focus:border-[#4C8EDA] focus:ring-1 focus:ring-[#4C8EDA] text-gray-600"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Press Enter to add a sub-category
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
         </div>
